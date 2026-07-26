@@ -33,8 +33,7 @@ export function MermaidChart({ chart }: { chart: string }) {
           ref.current.innerHTML = svg;
           setError(null);
         }
-      } catch (e) {
-        console.log("MERMAID_ERR", String(e), chart);
+      } catch {
         if (!cancelled) setError("This diagram couldn't be rendered.");
       }
     })();
