@@ -73,112 +73,103 @@ function Index() {
   const busy = mutation.isPending;
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="sticky top-0 z-20 border-b border-border bg-background/85 backdrop-blur">
-        <div className="mx-auto flex max-w-[1600px] flex-wrap items-center gap-4 px-6 py-4">
-          <div className="flex items-center gap-3">
-            <div className="grid size-9 place-items-center rounded-md border border-neon/40 bg-neon/10 font-mono text-sm font-semibold text-neon">
-              py
-            </div>
-            <div>
-              <h1 className="font-mono text-base font-semibold tracking-tight text-foreground">
-                PyLens
-              </h1>
-              <p className="text-xs text-muted-foreground">
-                AI code analysis for Python learners
-              </p>
-            </div>
-          </div>
-
-          <button
-            type="button"
-            onClick={() => run(kind)}
-            disabled={busy || code.trim().length === 0}
-            className="ml-auto inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 font-mono text-sm font-medium text-primary-foreground transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            {busy ? <Loader2 className="size-4 animate-spin" /> : <Play className="size-4" />}
-            {busy ? "analysing" : "run analysis"}
-          </button>
+    <div className="mx-auto grid max-w-[1600px] gap-6 px-4 py-6 sm:px-6 lg:grid-cols-2">
+      <section className="flex min-w-0 flex-col gap-4">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+            samples
+          </span>
+          {SAMPLES.map((s) => (
+            <button
+              key={s.label}
+              type="button"
+              onClick={() => {
+                setCode(s.code);
+                setResults({});
+              }}
+              className="rounded-full border border-border bg-surface px-3 py-1 font-mono text-xs text-muted-foreground transition hover:border-neon/40 hover:text-neon"
+            >
+              {s.label}
+            </button>
+          ))}
         </div>
-      </header>
 
-      <main className="mx-auto grid max-w-[1600px] gap-6 px-6 py-8 lg:grid-cols-2">
-        <section className="flex flex-col gap-4">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
-              samples
-            </span>
-            {SAMPLES.map((s) => (
-              <button
-                key={s.label}
-                type="button"
-                onClick={() => {
-                  setCode(s.code);
-                  setResults({});
-                }}
-                className="rounded-full border border-border bg-surface px-3 py-1 font-mono text-xs text-muted-foreground transition hover:border-neon/40 hover:text-neon"
-              >
-                {s.label}
-              </button>
-            ))}
-          </div>
+        <CodeEditor value={code} onChange={setCode} highlightLine={highlightLine} />
 
-          <CodeEditor value={code} onChange={setCode} highlightLine={highlightLine} />
-        </section>
+        <Button
+          size="lg"
+          onClick={() => run(kind)}
+          disabled={busy || code.trim().length === 0}
+          className="w-full font-mono"
+        >
+          {busy ? (
+            <Loader2 className="size-4 animate-spin" />
+          ) : (
+            <Play className="size-4" />
+          )}
+          {busy ? "Analyzing…" : "Analyze Code"}
+        </Button>
+      </section>
 
-        <section className="flex flex-col gap-4">
-          <div className="flex flex-wrap gap-1.5 rounded-lg border border-border bg-surface p-1.5">
+      <section className="flex min-w-0 flex-col gap-4">
+        <Tabs
+          value={kind}
+          onValueChange={(v) => {
+            const next = v as AnalysisKind;
+            if (results[next]) setKind(next);
+            else run(next);
+          }}
+          className="gap-4"
+        >
+          <TabsList className="grid h-auto w-full grid-cols-2 gap-1 bg-surface p-1.5 sm:grid-cols-3 lg:grid-cols-6">
             {TABS.map((tab) => {
               const Icon = tab.icon;
-              const active = tab.kind === kind;
               return (
-                <button
+                <TabsTrigger
                   key={tab.kind}
-                  type="button"
-                  onClick={() => (results[tab.kind] ? setKind(tab.kind) : run(tab.kind))}
+                  value={tab.kind}
                   disabled={busy}
-                  className={cn(
-                    "inline-flex items-center gap-2 rounded-md px-3 py-2 font-mono text-xs transition disabled:opacity-60",
-                    active
-                      ? "bg-neon/10 text-neon ring-1 ring-neon/40"
-                      : "text-muted-foreground hover:text-foreground",
-                  )}
+                  className="gap-1.5 font-mono text-xs data-[state=active]:bg-neon/10 data-[state=active]:text-neon"
                 >
-                  <Icon className="size-3.5" />
-                  {tab.label}
-                </button>
+                  <Icon className="size-3.5 shrink-0" />
+                  <span className="truncate">{tab.label}</span>
+                </TabsTrigger>
               );
             })}
-          </div>
+          </TabsList>
 
-          <div className="scroll-slim min-h-[420px] rounded-lg border border-border bg-background/40 p-6">
-            {busy ? (
-              <div className="flex h-full min-h-[360px] flex-col items-center justify-center gap-3 text-muted-foreground">
-                <Loader2 className="size-5 animate-spin text-neon" />
-                <p className="font-mono text-xs">reading your code…</p>
+          {TABS.map((tab) => (
+            <TabsContent key={tab.kind} value={tab.kind} className="mt-0">
+              <div className="scroll-slim min-h-[420px] rounded-lg border border-border bg-background/40 p-6">
+                {busy ? (
+                  <div className="flex h-full min-h-[360px] flex-col items-center justify-center gap-3 text-muted-foreground">
+                    <Loader2 className="size-5 animate-spin text-neon" />
+                    <p className="font-mono text-xs">reading your code…</p>
+                  </div>
+                ) : mutation.isError ? (
+                  <div className="rounded-lg border border-destructive/40 bg-destructive/10 p-5">
+                    <p className="text-sm text-destructive">
+                      {(mutation.error as Error).message}
+                    </p>
+                  </div>
+                ) : current ? (
+                  <AnalysisResultView result={current} onHoverLine={setHighlightLine} />
+                ) : (
+                  <div className="flex h-full min-h-[360px] flex-col items-center justify-center gap-2 text-center">
+                    <p className="font-mono text-sm text-foreground">
+                      {tab.label} results will appear here
+                    </p>
+                    <p className="max-w-sm text-sm text-muted-foreground">
+                      Paste Python on the left and hit Analyze Code.
+                    </p>
+                  </div>
+                )}
               </div>
-            ) : mutation.isError ? (
-              <div className="rounded-lg border border-destructive/40 bg-destructive/10 p-5">
-                <p className="text-sm text-destructive">
-                  {(mutation.error as Error).message}
-                </p>
-              </div>
-            ) : current ? (
-              <AnalysisResultView result={current} onHoverLine={setHighlightLine} />
-            ) : (
-              <div className="flex h-full min-h-[360px] flex-col items-center justify-center gap-2 text-center">
-                <p className="font-mono text-sm text-foreground">
-                  Pick an analysis to get started
-                </p>
-                <p className="max-w-sm text-sm text-muted-foreground">
-                  Explanations, flowcharts, comments, bugs, improvements and Big-O — all from
-                  the code on the left.
-                </p>
-              </div>
-            )}
-          </div>
-        </section>
-      </main>
+            </TabsContent>
+          ))}
+        </Tabs>
+      </section>
     </div>
   );
 }
+
