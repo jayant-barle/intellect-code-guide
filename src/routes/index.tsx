@@ -19,7 +19,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { analyzeCode } from "@/lib/analysis.functions";
 import type { AnalysisKind, AnalysisResult } from "@/lib/analysis-types";
 import { SAMPLES } from "@/lib/samples";
-import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -44,12 +43,12 @@ export const Route = createFileRoute("/")({
 });
 
 const TABS: { kind: AnalysisKind; label: string; icon: typeof Bug }[] = [
-  { kind: "explain", label: "Explain", icon: ListTree },
+  { kind: "explain", label: "Explanation", icon: ListTree },
   { kind: "flowchart", label: "Flowchart", icon: GitBranch },
-  { kind: "comments", label: "Comments", icon: MessageSquareCode },
+  { kind: "comments", label: "Auto-Comments", icon: MessageSquareCode },
   { kind: "bugs", label: "Bugs", icon: Bug },
-  { kind: "improve", label: "Improve", icon: Wand2 },
-  { kind: "bigo", label: "Big-O", icon: Gauge },
+  { kind: "improve", label: "Improvements", icon: Wand2 },
+  { kind: "bigo", label: "Complexity", icon: Gauge },
 ];
 
 function Index() {
