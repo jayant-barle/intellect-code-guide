@@ -156,15 +156,9 @@ function Index() {
                 ) : current ? (
                   <AnalysisResultView result={current} onHoverLine={setHighlightLine} />
                 ) : (
-                  <div className="flex h-full min-h-[360px] flex-col items-center justify-center gap-2 text-center">
-                    <p className="font-mono text-sm text-foreground">
-                      {tab.label} results will appear here
-                    </p>
-                    <p className="max-w-sm text-sm text-muted-foreground">
-                      Paste Python on the left and hit Analyze Code.
-                    </p>
-                  </div>
+                  <TabMockContent kind={tab.kind} />
                 )}
+
               </div>
             </TabsContent>
           ))}
