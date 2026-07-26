@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { CodeEditor } from "@/components/CodeEditor";
 import { AnalysisResultView } from "@/components/AnalysisResultView";
+import { TabMockContent } from "@/components/TabMockContent";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { analyzeCode } from "@/lib/analysis.functions";
