@@ -122,7 +122,7 @@ function Index() {
           }}
           className="gap-4"
         >
-          <TabsList className="grid h-auto w-full grid-cols-2 gap-1 bg-surface p-1.5 sm:grid-cols-3 lg:grid-cols-6">
+          <TabsList className="grid h-auto w-full grid-cols-2 gap-1 bg-surface p-1.5 sm:grid-cols-3 xl:grid-cols-6">
             {TABS.map((tab) => {
               const Icon = tab.icon;
               return (
