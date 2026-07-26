@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { CodeEditor } from "@/components/CodeEditor";
 import { AnalysisResultView } from "@/components/AnalysisResultView";
+import { TabMockContent } from "@/components/TabMockContent";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { analyzeCode } from "@/lib/analysis.functions";
@@ -156,15 +157,9 @@ function Index() {
                 ) : current ? (
                   <AnalysisResultView result={current} onHoverLine={setHighlightLine} />
                 ) : (
-                  <div className="flex h-full min-h-[360px] flex-col items-center justify-center gap-2 text-center">
-                    <p className="font-mono text-sm text-foreground">
-                      {tab.label} results will appear here
-                    </p>
-                    <p className="max-w-sm text-sm text-muted-foreground">
-                      Paste Python on the left and hit Analyze Code.
-                    </p>
-                  </div>
+                  <TabMockContent kind={tab.kind} />
                 )}
+
               </div>
             </TabsContent>
           ))}
