@@ -1,6 +1,8 @@
 import { AlertTriangle, Bug, Clock, Database, GitBranch, Wand2 } from "lucide-react";
 
+import { MermaidChart } from "@/components/MermaidChart";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+
 import { Badge } from "@/components/ui/badge";
 import type { AnalysisKind } from "@/lib/analysis-types";
 
