@@ -1,6 +1,8 @@
 import { AlertTriangle, Bug, Clock, Database, GitBranch, Wand2 } from "lucide-react";
 
+import { MermaidChart } from "@/components/MermaidChart";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+
 import { Badge } from "@/components/ui/badge";
 import type { AnalysisKind } from "@/lib/analysis-types";
 
@@ -97,24 +99,32 @@ function ExplanationMock() {
   );
 }
 
+const MOCK_MERMAID = `flowchart TD
+  A([start two_sum]) --> B[seen = {}]
+  B --> C{more items?}
+  C -- no --> D([return []])
+  C -- yes --> E[need = target - n]
+  E --> F{need in seen?}
+  F -- yes --> G([return seen[need], i])
+  F -- no --> H[seen[n] = i]
+  H --> C`;
+
 function FlowchartMock() {
   return (
     <div className="flex flex-col gap-3">
       <SectionHint>control flow</SectionHint>
-      <div className="grid min-h-[380px] place-items-center rounded-lg border border-dashed border-border bg-surface/60 p-8">
-        <div className="flex flex-col items-center gap-3 text-center">
-          <div className="grid size-12 place-items-center rounded-xl border border-neon/30 bg-neon/10 text-neon">
-            <GitBranch className="size-5" />
-          </div>
-          <p className="font-mono text-sm text-foreground">Mermaid diagram area</p>
-          <p className="max-w-xs text-sm text-muted-foreground">
-            The generated flowchart of your function's branches and loops renders here.
-          </p>
-        </div>
+      <div className="grid min-h-[380px] place-items-center rounded-lg border border-border bg-surface/60 p-8">
+        <MermaidChart chart={MOCK_MERMAID} />
       </div>
+      <p className="flex items-center gap-2 font-mono text-xs text-muted-foreground">
+        <GitBranch className="size-3.5 text-neon" />
+        rendered with mermaid.js
+      </p>
     </div>
   );
 }
+
+
 
 function BugsMock() {
   return (
