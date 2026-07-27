@@ -15,6 +15,8 @@ import {
 import { CodeEditor } from "@/components/CodeEditor";
 import { AnalysisResultView } from "@/components/AnalysisResultView";
 import { TabMockContent } from "@/components/TabMockContent";
+import { TabSkeleton } from "@/components/TabSkeleton";
+
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { analyzeCode } from "@/lib/analysis.functions";
@@ -52,17 +54,29 @@ const TABS: { kind: AnalysisKind; label: string; icon: typeof Bug }[] = [
   { kind: "bigo", label: "Complexity", icon: Gauge },
 ];
 
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
 function Index() {
   const [code, setCode] = useState(SAMPLES[0].code);
   const [kind, setKind] = useState<AnalysisKind>("explain");
   const [highlightLine, setHighlightLine] = useState<number | null>(null);
+  const [analyzed, setAnalyzed] = useState(false);
   const [results, setResults] = useState<Partial<Record<AnalysisKind, AnalysisResult>>>({});
 
   const analyze = useServerFn(analyzeCode);
 
   const mutation = useMutation({
-    mutationFn: (next: AnalysisKind) => analyze({ data: { kind: next, code } }),
-    onSuccess: (data) => setResults((prev) => ({ ...prev, [data.kind]: data })),
+    mutationFn: async (next: AnalysisKind) => {
+      const [result] = await Promise.all([
+        analyze({ data: { kind: next, code } }).catch(() => null),
+        sleep(2000),
+      ]);
+      return result;
+    },
+    onSuccess: (data) => {
+      if (data) setResults((prev) => ({ ...prev, [data.kind]: data }));
+    },
+    onSettled: () => setAnalyzed(true),
   });
 
   const run = (next: AnalysisKind) => {
@@ -73,6 +87,8 @@ function Index() {
 
   const current = results[kind];
   const busy = mutation.isPending;
+  const isEmpty = code.trim().length === 0;
+
 
   return (
     <div className="mx-auto grid max-w-[1600px] gap-6 px-4 py-6 sm:px-6 lg:grid-cols-2">
@@ -88,6 +104,7 @@ function Index() {
               onClick={() => {
                 setCode(s.code);
                 setResults({});
+                setAnalyzed(false);
               }}
               className="rounded-full border border-border bg-surface px-3 py-1 font-mono text-xs text-muted-foreground transition hover:border-neon/40 hover:text-neon"
             >
@@ -101,7 +118,7 @@ function Index() {
         <Button
           size="lg"
           onClick={() => run(kind)}
-          disabled={busy || code.trim().length === 0}
+          disabled={busy || isEmpty}
           className="w-full font-mono"
         >
           {busy ? (
@@ -111,6 +128,12 @@ function Index() {
           )}
           {busy ? "Analyzing…" : "Analyze Code"}
         </Button>
+        {isEmpty ? (
+          <p className="font-mono text-xs text-muted-foreground">
+            Paste some Python code to enable analysis.
+          </p>
+        ) : null}
+
       </section>
 
       <section className="flex min-w-0 flex-col gap-4">
@@ -144,21 +167,20 @@ function Index() {
             <TabsContent key={tab.kind} value={tab.kind} className="mt-0">
               <div className="scroll-slim min-h-[420px] rounded-lg border border-border bg-background/40 p-6">
                 {busy ? (
-                  <div className="flex h-full min-h-[360px] flex-col items-center justify-center gap-3 text-muted-foreground">
-                    <Loader2 className="size-5 animate-spin text-neon" />
-                    <p className="font-mono text-xs">reading your code…</p>
-                  </div>
-                ) : mutation.isError ? (
-                  <div className="rounded-lg border border-destructive/40 bg-destructive/10 p-5">
-                    <p className="text-sm text-destructive">
-                      {(mutation.error as Error).message}
-                    </p>
-                  </div>
+                  <TabSkeleton kind={tab.kind} />
                 ) : current ? (
                   <AnalysisResultView result={current} onHoverLine={setHighlightLine} />
-                ) : (
+                ) : analyzed ? (
                   <TabMockContent kind={tab.kind} />
+                ) : (
+                  <div className="flex h-full min-h-[360px] flex-col items-center justify-center gap-3 text-center text-muted-foreground">
+                    <Play className="size-5 text-neon" />
+                    <p className="font-mono text-xs">
+                      run “Analyze Code” to see {tab.label.toLowerCase()}
+                    </p>
+                  </div>
                 )}
+
 
               </div>
             </TabsContent>
