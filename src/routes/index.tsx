@@ -102,6 +102,7 @@ function Index() {
               onClick={() => {
                 setCode(s.code);
                 setResults({});
+                setAnalyzed(false);
               }}
               className="rounded-full border border-border bg-surface px-3 py-1 font-mono text-xs text-muted-foreground transition hover:border-neon/40 hover:text-neon"
             >
@@ -115,7 +116,7 @@ function Index() {
         <Button
           size="lg"
           onClick={() => run(kind)}
-          disabled={busy || code.trim().length === 0}
+          disabled={busy || isEmpty}
           className="w-full font-mono"
         >
           {busy ? (
@@ -125,6 +126,12 @@ function Index() {
           )}
           {busy ? "Analyzing…" : "Analyze Code"}
         </Button>
+        {isEmpty ? (
+          <p className="font-mono text-xs text-muted-foreground">
+            Paste some Python code to enable analysis.
+          </p>
+        ) : null}
+
       </section>
 
       <section className="flex min-w-0 flex-col gap-4">
