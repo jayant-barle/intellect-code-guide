@@ -165,21 +165,20 @@ function Index() {
             <TabsContent key={tab.kind} value={tab.kind} className="mt-0">
               <div className="scroll-slim min-h-[420px] rounded-lg border border-border bg-background/40 p-6">
                 {busy ? (
-                  <div className="flex h-full min-h-[360px] flex-col items-center justify-center gap-3 text-muted-foreground">
-                    <Loader2 className="size-5 animate-spin text-neon" />
-                    <p className="font-mono text-xs">reading your code…</p>
-                  </div>
-                ) : mutation.isError ? (
-                  <div className="rounded-lg border border-destructive/40 bg-destructive/10 p-5">
-                    <p className="text-sm text-destructive">
-                      {(mutation.error as Error).message}
-                    </p>
-                  </div>
+                  <TabSkeleton kind={tab.kind} />
                 ) : current ? (
                   <AnalysisResultView result={current} onHoverLine={setHighlightLine} />
-                ) : (
+                ) : analyzed ? (
                   <TabMockContent kind={tab.kind} />
+                ) : (
+                  <div className="flex h-full min-h-[360px] flex-col items-center justify-center gap-3 text-center text-muted-foreground">
+                    <Play className="size-5 text-neon" />
+                    <p className="font-mono text-xs">
+                      run “Analyze Code” to see {tab.label.toLowerCase()}
+                    </p>
+                  </div>
                 )}
+
 
               </div>
             </TabsContent>
