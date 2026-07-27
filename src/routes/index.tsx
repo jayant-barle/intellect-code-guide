@@ -52,17 +52,29 @@ const TABS: { kind: AnalysisKind; label: string; icon: typeof Bug }[] = [
   { kind: "bigo", label: "Complexity", icon: Gauge },
 ];
 
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
 function Index() {
   const [code, setCode] = useState(SAMPLES[0].code);
   const [kind, setKind] = useState<AnalysisKind>("explain");
   const [highlightLine, setHighlightLine] = useState<number | null>(null);
+  const [analyzed, setAnalyzed] = useState(false);
   const [results, setResults] = useState<Partial<Record<AnalysisKind, AnalysisResult>>>({});
 
   const analyze = useServerFn(analyzeCode);
 
   const mutation = useMutation({
-    mutationFn: (next: AnalysisKind) => analyze({ data: { kind: next, code } }),
-    onSuccess: (data) => setResults((prev) => ({ ...prev, [data.kind]: data })),
+    mutationFn: async (next: AnalysisKind) => {
+      const [result] = await Promise.all([
+        analyze({ data: { kind: next, code } }).catch(() => null),
+        sleep(2000),
+      ]);
+      return result;
+    },
+    onSuccess: (data) => {
+      if (data) setResults((prev) => ({ ...prev, [data.kind]: data }));
+    },
+    onSettled: () => setAnalyzed(true),
   });
 
   const run = (next: AnalysisKind) => {
@@ -73,6 +85,8 @@ function Index() {
 
   const current = results[kind];
   const busy = mutation.isPending;
+  const isEmpty = code.trim().length === 0;
+
 
   return (
     <div className="mx-auto grid max-w-[1600px] gap-6 px-4 py-6 sm:px-6 lg:grid-cols-2">
