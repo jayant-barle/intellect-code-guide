@@ -14,7 +14,9 @@ export function MermaidChart({ chart }: { chart: string }) {
         startOnLoad: false,
         theme: "dark",
         securityLevel: "strict",
+        flowchart: { htmlLabels: false, useMaxWidth: true },
         fontFamily: "JetBrains Mono, monospace",
+
         themeVariables: {
           background: "transparent",
           primaryColor: "#232a2c",
