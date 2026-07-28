@@ -40,8 +40,10 @@ export function MermaidChart({ chart }: { chart: string }) {
 
     return () => {
       cancelled = true;
+      document.querySelectorAll(`#dm-${id}, #dm-m-${id}, #m-${id}`).forEach((el) => el.remove());
     };
   }, [chart, id]);
+
 
   if (error) {
     return <p className="font-mono text-sm text-destructive">{error}</p>;
