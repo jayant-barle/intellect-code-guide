@@ -14,7 +14,9 @@ export function MermaidChart({ chart }: { chart: string }) {
         startOnLoad: false,
         theme: "dark",
         securityLevel: "strict",
+        flowchart: { htmlLabels: false, useMaxWidth: true },
         fontFamily: "JetBrains Mono, monospace",
+
         themeVariables: {
           background: "transparent",
           primaryColor: "#232a2c",
@@ -40,8 +42,10 @@ export function MermaidChart({ chart }: { chart: string }) {
 
     return () => {
       cancelled = true;
+      document.querySelectorAll(`#dm-${id}, #dm-m-${id}, #m-${id}`).forEach((el) => el.remove());
     };
   }, [chart, id]);
+
 
   if (error) {
     return <p className="font-mono text-sm text-destructive">{error}</p>;

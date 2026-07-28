@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation } from "@tanstack/react-query";
-import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
+import { toast } from "sonner";
 import {
   Bug,
   Gauge,
@@ -13,14 +13,13 @@ import {
   Wand2,
 } from "lucide-react";
 import { CodeEditor } from "@/components/CodeEditor";
-import { AnalysisResultView } from "@/components/AnalysisResultView";
-import { TabMockContent } from "@/components/TabMockContent";
+import { ApiResultView } from "@/components/ApiResultView";
 import { TabSkeleton } from "@/components/TabSkeleton";
 
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { analyzeCode } from "@/lib/analysis.functions";
-import type { AnalysisKind, AnalysisResult } from "@/lib/analysis-types";
+import type { AnalysisKind } from "@/lib/analysis-types";
+import { requestAnalysis, type AnalyzeResponse } from "@/lib/api-analysis";
 import { SAMPLES } from "@/lib/samples";
 
 export const Route = createFileRoute("/")({
@@ -54,41 +53,29 @@ const TABS: { kind: AnalysisKind; label: string; icon: typeof Bug }[] = [
   { kind: "bigo", label: "Complexity", icon: Gauge },
 ];
 
-const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
-
 function Index() {
   const [code, setCode] = useState(SAMPLES[0].code);
   const [kind, setKind] = useState<AnalysisKind>("explain");
   const [highlightLine, setHighlightLine] = useState<number | null>(null);
-  const [analyzed, setAnalyzed] = useState(false);
-  const [results, setResults] = useState<Partial<Record<AnalysisKind, AnalysisResult>>>({});
-
-  const analyze = useServerFn(analyzeCode);
+  const [result, setResult] = useState<AnalyzeResponse | null>(null);
 
   const mutation = useMutation({
-    mutationFn: async (next: AnalysisKind) => {
-      const [result] = await Promise.all([
-        analyze({ data: { kind: next, code } }).catch(() => null),
-        sleep(2000),
-      ]);
-      return result;
+    mutationFn: (python: string) => requestAnalysis(python),
+    onSuccess: (data) => setResult(data),
+    onError: () => {
+      setResult(null);
+      toast.error("Analysis failed. Please try again.");
     },
-    onSuccess: (data) => {
-      if (data) setResults((prev) => ({ ...prev, [data.kind]: data }));
-    },
-    onSettled: () => setAnalyzed(true),
   });
 
-  const run = (next: AnalysisKind) => {
-    setKind(next);
-    setHighlightLine(null);
-    mutation.mutate(next);
-  };
-
-  const current = results[kind];
   const busy = mutation.isPending;
   const isEmpty = code.trim().length === 0;
 
+  const run = () => {
+    if (isEmpty || busy) return;
+    setHighlightLine(null);
+    mutation.mutate(code);
+  };
 
   return (
     <div className="mx-auto grid max-w-[1600px] gap-6 px-4 py-6 sm:px-6 lg:grid-cols-2">
@@ -103,8 +90,7 @@ function Index() {
               type="button"
               onClick={() => {
                 setCode(s.code);
-                setResults({});
-                setAnalyzed(false);
+                setResult(null);
               }}
               className="rounded-full border border-border bg-surface px-3 py-1 font-mono text-xs text-muted-foreground transition hover:border-neon/40 hover:text-neon"
             >
@@ -117,7 +103,7 @@ function Index() {
 
         <Button
           size="lg"
-          onClick={() => run(kind)}
+          onClick={run}
           disabled={busy || isEmpty}
           className="w-full font-mono"
         >
@@ -133,17 +119,12 @@ function Index() {
             Paste some Python code to enable analysis.
           </p>
         ) : null}
-
       </section>
 
       <section className="flex min-w-0 flex-col gap-4">
         <Tabs
           value={kind}
-          onValueChange={(v) => {
-            const next = v as AnalysisKind;
-            if (results[next]) setKind(next);
-            else run(next);
-          }}
+          onValueChange={(v) => setKind(v as AnalysisKind)}
           className="gap-4"
         >
           <TabsList className="grid h-auto w-full grid-cols-2 gap-1 bg-surface p-1.5 sm:grid-cols-3 xl:grid-cols-6">
@@ -153,7 +134,6 @@ function Index() {
                 <TabsTrigger
                   key={tab.kind}
                   value={tab.kind}
-                  disabled={busy}
                   className="gap-1.5 font-mono text-xs data-[state=active]:bg-neon/10 data-[state=active]:text-neon"
                 >
                   <Icon className="size-3.5 shrink-0" />
@@ -168,10 +148,12 @@ function Index() {
               <div className="scroll-slim min-h-[420px] rounded-lg border border-border bg-background/40 p-6">
                 {busy ? (
                   <TabSkeleton kind={tab.kind} />
-                ) : current ? (
-                  <AnalysisResultView result={current} onHoverLine={setHighlightLine} />
-                ) : analyzed ? (
-                  <TabMockContent kind={tab.kind} />
+                ) : result ? (
+                  <ApiResultView
+                    kind={tab.kind}
+                    data={result}
+                    onHoverLine={setHighlightLine}
+                  />
                 ) : (
                   <div className="flex h-full min-h-[360px] flex-col items-center justify-center gap-3 text-center text-muted-foreground">
                     <Play className="size-5 text-neon" />
@@ -180,8 +162,6 @@ function Index() {
                     </p>
                   </div>
                 )}
-
-
               </div>
             </TabsContent>
           ))}
@@ -190,4 +170,3 @@ function Index() {
     </div>
   );
 }
-
