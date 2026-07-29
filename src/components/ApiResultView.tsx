@@ -95,7 +95,16 @@ export function ApiResultView({
     if (!data.explanation?.length) return <Empty>No explanation returned.</Empty>;
     return (
       <div className="flex flex-col gap-3">
-        <SectionHint>line-by-line</SectionHint>
+        <ExportBar title="line-by-line">
+          <CopyButton
+            label="Explanation"
+            text={data.explanation
+              .map((row) =>
+                `Line ${row.line}${row.code ? `: ${row.code.trim()}` : ""}\n${row.explanation}`,
+              )
+              .join("\n\n")}
+          />
+        </ExportBar>
         <ul className="divide-y divide-border overflow-hidden rounded-lg border border-border bg-surface">
           {data.explanation.map((row, i) => (
             <li
