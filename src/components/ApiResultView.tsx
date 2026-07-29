@@ -142,7 +142,9 @@ export function ApiResultView({
     if (!data.commented_code) return <Empty>No commented code returned.</Empty>;
     return (
       <div className="flex flex-col gap-3">
-        <SectionHint>auto-commented source</SectionHint>
+        <ExportBar title="auto-commented source">
+          <CopyButton text={data.commented_code} label="Commented code" />
+        </ExportBar>
         <div className="overflow-hidden rounded-lg border border-border bg-surface">
           <div className="flex items-center gap-2 border-b border-border px-4 py-2">
             <Wand2 className="size-3.5 text-neon" />
