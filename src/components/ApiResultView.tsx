@@ -124,18 +124,7 @@ export function ApiResultView({
 
   if (kind === "flowchart") {
     if (!data.mermaid_chart) return <Empty>No flowchart returned.</Empty>;
-    return (
-      <div className="flex flex-col gap-3">
-        <SectionHint>control flow</SectionHint>
-        <div className="grid min-h-[380px] place-items-center rounded-lg border border-border bg-surface/60 p-8">
-          <MermaidChart chart={data.mermaid_chart} />
-        </div>
-        <p className="flex items-center gap-2 font-mono text-xs text-muted-foreground">
-          <GitBranch className="size-3.5 text-neon" />
-          rendered with mermaid.js
-        </p>
-      </div>
-    );
+    return <FlowchartView chart={data.mermaid_chart} />;
   }
 
   if (kind === "comments") {
