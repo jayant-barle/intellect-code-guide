@@ -13,7 +13,6 @@ function resolveEditor(mod: unknown): typeof SimpleEditor {
 }
 
 const Editor = resolveEditor(SimpleEditor);
-if (typeof window !== "undefined") console.log("EDITOR_TYPE", typeof Editor, Object.keys((Editor as any) ?? {}));
 
 export function CodeEditor({
   value,
