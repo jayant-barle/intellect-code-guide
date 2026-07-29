@@ -1,8 +1,21 @@
-import { AlertTriangle, Bug, Clock, Database, GitBranch, Wand2 } from "lucide-react";
+import { useRef, useState } from "react";
+import {
+  AlertTriangle,
+  Bug,
+  Check,
+  Clock,
+  Copy,
+  Database,
+  Download,
+  GitBranch,
+  Wand2,
+} from "lucide-react";
+import { toast } from "sonner";
 
 import { MermaidChart } from "@/components/MermaidChart";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import type { AnalysisKind } from "@/lib/analysis-types";
 import type { AnalyzeResponse } from "@/lib/api-analysis";
 
@@ -17,6 +30,47 @@ function SectionHint({ children }: { children: string }) {
     <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
       {children}
     </p>
+  );
+}
+
+function CopyButton({ text, label }: { text: string; label: string }) {
+  const [copied, setCopied] = useState(false);
+
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      toast.success(`${label} copied to clipboard`);
+      setTimeout(() => setCopied(false), 1600);
+    } catch {
+      toast.error("Copy failed. Please try again.");
+    }
+  };
+
+  return (
+    <Button
+      type="button"
+      size="sm"
+      variant="outline"
+      onClick={copy}
+      className="h-8 gap-1.5 font-mono text-[11px]"
+    >
+      {copied ? (
+        <Check className="size-3.5 text-neon" />
+      ) : (
+        <Copy className="size-3.5" />
+      )}
+      {copied ? "Copied" : "Copy to Clipboard"}
+    </Button>
+  );
+}
+
+function ExportBar({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div className="flex flex-wrap items-center justify-between gap-2">
+      <SectionHint>{title}</SectionHint>
+      {children}
+    </div>
   );
 }
 
