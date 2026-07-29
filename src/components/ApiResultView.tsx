@@ -98,8 +98,10 @@ function FlowchartView({ chart }: { chart: string }) {
     const a = document.createElement("a");
     a.href = url;
     a.download = "pylens-flowchart.svg";
+    document.body.appendChild(a);
     a.click();
-    URL.revokeObjectURL(url);
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
     toast.success("Flowchart downloaded");
   };
 
