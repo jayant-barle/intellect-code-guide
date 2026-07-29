@@ -128,3 +128,38 @@
   scrollbar-width: thin;
   scrollbar-color: var(--surface-2) transparent;
 }
+
+.code-editor textarea,
+.code-editor pre {
+  font-family: var(--font-mono) !important;
+  font-size: 13px !important;
+  line-height: 1.5rem !important;
+}
+
+.code-editor textarea::placeholder {
+  color: color-mix(in oklab, var(--color-muted-foreground) 60%, transparent);
+}
+
+.code-editor .token.comment {
+  color: color-mix(in oklab, var(--neon) 70%, var(--color-muted-foreground));
+  font-style: italic;
+}
+.code-editor .token.keyword,
+.code-editor .token.boolean {
+  color: oklch(0.78 0.16 300);
+}
+.code-editor .token.string,
+.code-editor .token.triple-quoted-string {
+  color: oklch(0.83 0.15 100);
+}
+.code-editor .token.function {
+  color: oklch(0.82 0.14 210);
+}
+.code-editor .token.number {
+  color: oklch(0.8 0.13 40);
+}
+.code-editor .token.operator,
+.code-editor .token.punctuation {
+  color: var(--color-muted-foreground);
+  background: transparent;
+}
