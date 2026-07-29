@@ -82,6 +82,55 @@ function Empty({ children }: { children: string }) {
   );
 }
 
+function FlowchartView({ chart }: { chart: string }) {
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const downloadSvg = () => {
+    const svg = containerRef.current?.querySelector("svg");
+    if (!svg) {
+      toast.error("Flowchart is not ready yet.");
+      return;
+    }
+    const clone = svg.cloneNode(true) as SVGSVGElement;
+    clone.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+    const source = `<?xml version="1.0" encoding="UTF-8"?>\n${new XMLSerializer().serializeToString(clone)}`;
+    const url = URL.createObjectURL(new Blob([source], { type: "image/svg+xml;charset=utf-8" }));
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "pylens-flowchart.svg";
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success("Flowchart downloaded");
+  };
+
+  return (
+    <div className="flex flex-col gap-3">
+      <ExportBar title="control flow">
+        <Button
+          type="button"
+          size="sm"
+          variant="outline"
+          onClick={downloadSvg}
+          className="h-8 gap-1.5 font-mono text-[11px]"
+        >
+          <Download className="size-3.5" />
+          Download SVG
+        </Button>
+      </ExportBar>
+      <div
+        ref={containerRef}
+        className="grid min-h-[380px] place-items-center rounded-lg border border-border bg-surface/60 p-8"
+      >
+        <MermaidChart chart={chart} />
+      </div>
+      <p className="flex items-center gap-2 font-mono text-xs text-muted-foreground">
+        <GitBranch className="size-3.5 text-neon" />
+        rendered with mermaid.js
+      </p>
+    </div>
+  );
+}
+
 export function ApiResultView({
   kind,
   data,
