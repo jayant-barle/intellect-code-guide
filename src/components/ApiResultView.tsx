@@ -1,8 +1,21 @@
-import { AlertTriangle, Bug, Clock, Database, GitBranch, Wand2 } from "lucide-react";
+import { useRef, useState } from "react";
+import {
+  AlertTriangle,
+  Bug,
+  Check,
+  Clock,
+  Copy,
+  Database,
+  Download,
+  GitBranch,
+  Wand2,
+} from "lucide-react";
+import { toast } from "sonner";
 
 import { MermaidChart } from "@/components/MermaidChart";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import type { AnalysisKind } from "@/lib/analysis-types";
 import type { AnalyzeResponse } from "@/lib/api-analysis";
 
@@ -20,10 +33,102 @@ function SectionHint({ children }: { children: string }) {
   );
 }
 
+function CopyButton({ text, label }: { text: string; label: string }) {
+  const [copied, setCopied] = useState(false);
+
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      toast.success(`${label} copied to clipboard`);
+      setTimeout(() => setCopied(false), 1600);
+    } catch {
+      toast.error("Copy failed. Please try again.");
+    }
+  };
+
+  return (
+    <Button
+      type="button"
+      size="sm"
+      variant="outline"
+      onClick={copy}
+      className="h-8 gap-1.5 font-mono text-[11px]"
+    >
+      {copied ? (
+        <Check className="size-3.5 text-neon" />
+      ) : (
+        <Copy className="size-3.5" />
+      )}
+      {copied ? "Copied" : "Copy to Clipboard"}
+    </Button>
+  );
+}
+
+function ExportBar({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div className="flex flex-wrap items-center justify-between gap-2">
+      <SectionHint>{title}</SectionHint>
+      {children}
+    </div>
+  );
+}
+
 function Empty({ children }: { children: string }) {
   return (
     <div className="grid min-h-[240px] place-items-center rounded-lg border border-dashed border-border bg-surface/40 p-6 text-center font-mono text-xs text-muted-foreground">
       {children}
+    </div>
+  );
+}
+
+function FlowchartView({ chart }: { chart: string }) {
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const downloadSvg = () => {
+    const svg = containerRef.current?.querySelector("svg");
+    if (!svg) {
+      toast.error("Flowchart is not ready yet.");
+      return;
+    }
+    const clone = svg.cloneNode(true) as SVGSVGElement;
+    clone.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+    const source = `<?xml version="1.0" encoding="UTF-8"?>\n${new XMLSerializer().serializeToString(clone)}`;
+    const url = URL.createObjectURL(new Blob([source], { type: "image/svg+xml;charset=utf-8" }));
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "pylens-flowchart.svg";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    toast.success("Flowchart downloaded");
+  };
+
+  return (
+    <div className="flex flex-col gap-3">
+      <ExportBar title="control flow">
+        <Button
+          type="button"
+          size="sm"
+          variant="outline"
+          onClick={downloadSvg}
+          className="h-8 gap-1.5 font-mono text-[11px]"
+        >
+          <Download className="size-3.5" />
+          Download SVG
+        </Button>
+      </ExportBar>
+      <div
+        ref={containerRef}
+        className="grid min-h-[380px] place-items-center rounded-lg border border-border bg-surface/60 p-8"
+      >
+        <MermaidChart chart={chart} />
+      </div>
+      <p className="flex items-center gap-2 font-mono text-xs text-muted-foreground">
+        <GitBranch className="size-3.5 text-neon" />
+        rendered with mermaid.js
+      </p>
     </div>
   );
 }
@@ -41,7 +146,16 @@ export function ApiResultView({
     if (!data.explanation?.length) return <Empty>No explanation returned.</Empty>;
     return (
       <div className="flex flex-col gap-3">
-        <SectionHint>line-by-line</SectionHint>
+        <ExportBar title="line-by-line">
+          <CopyButton
+            label="Explanation"
+            text={data.explanation
+              .map((row) =>
+                `Line ${row.line}${row.code ? `: ${row.code.trim()}` : ""}\n${row.explanation}`,
+              )
+              .join("\n\n")}
+          />
+        </ExportBar>
         <ul className="divide-y divide-border overflow-hidden rounded-lg border border-border bg-surface">
           {data.explanation.map((row, i) => (
             <li
@@ -70,25 +184,16 @@ export function ApiResultView({
 
   if (kind === "flowchart") {
     if (!data.mermaid_chart) return <Empty>No flowchart returned.</Empty>;
-    return (
-      <div className="flex flex-col gap-3">
-        <SectionHint>control flow</SectionHint>
-        <div className="grid min-h-[380px] place-items-center rounded-lg border border-border bg-surface/60 p-8">
-          <MermaidChart chart={data.mermaid_chart} />
-        </div>
-        <p className="flex items-center gap-2 font-mono text-xs text-muted-foreground">
-          <GitBranch className="size-3.5 text-neon" />
-          rendered with mermaid.js
-        </p>
-      </div>
-    );
+    return <FlowchartView chart={data.mermaid_chart} />;
   }
 
   if (kind === "comments") {
     if (!data.commented_code) return <Empty>No commented code returned.</Empty>;
     return (
       <div className="flex flex-col gap-3">
-        <SectionHint>auto-commented source</SectionHint>
+        <ExportBar title="auto-commented source">
+          <CopyButton text={data.commented_code} label="Commented code" />
+        </ExportBar>
         <div className="overflow-hidden rounded-lg border border-border bg-surface">
           <div className="flex items-center gap-2 border-b border-border px-4 py-2">
             <Wand2 className="size-3.5 text-neon" />
