@@ -4,8 +4,15 @@ import Prism from "prismjs";
 import "prismjs/components/prism-python";
 import "prismjs/themes/prism-tomorrow.css";
 
-const Editor = ((SimpleEditor as unknown as { default?: typeof SimpleEditor })
-  .default ?? SimpleEditor) as typeof SimpleEditor;
+function resolveEditor(mod: unknown): typeof SimpleEditor {
+  let candidate: any = mod;
+  while (candidate && typeof candidate === "object" && candidate.default) {
+    candidate = candidate.default;
+  }
+  return candidate as typeof SimpleEditor;
+}
+
+const Editor = resolveEditor(SimpleEditor);
 
 export function CodeEditor({
   value,
