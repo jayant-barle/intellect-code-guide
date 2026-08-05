@@ -18,7 +18,7 @@ import { z } from "zod";
  * once the live path is wired up.
  */
 
-const USE_MOCK = true;
+const USE_MOCK = false;
 
 const requestSchema = z.object({
   python_code: z.string().min(1, "python_code is required").max(20000),
@@ -115,6 +115,21 @@ function mockAnalysis(pythonCode: string) {
   };
 }
 
+function parseJsonResponse(text: string) {
+  const cleaned = text
+    .replace(/^\s*```(?:json)?/i, "")
+    .replace(/```\s*$/, "")
+    .trim();
+  try {
+    return JSON.parse(cleaned);
+  } catch {
+    const start = cleaned.indexOf("{");
+    const end = cleaned.lastIndexOf("}");
+    if (start === -1 || end <= start) throw new Error("Model returned non-JSON output");
+    return JSON.parse(cleaned.slice(start, end + 1));
+  }
+}
+
 export const Route = createFileRoute("/api/analyze")({
   server: {
     handlers: {
@@ -157,7 +172,7 @@ export const Route = createFileRoute("/api/analyze")({
               "You are a precise Python code analysis assistant. Respond with strict JSON only.",
             prompt: buildAnalysisPrompt(parsed.data.python_code),
           });
-          return Response.json(JSON.parse(text.replace(/^```(?:json)?|```$/g, "").trim()));
+          return Response.json(parseJsonResponse(text));
         } catch (error) {
           const message = error instanceof Error ? error.message : String(error);
           if (message.includes("429")) {
