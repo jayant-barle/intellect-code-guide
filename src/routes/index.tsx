@@ -141,9 +141,14 @@ function Index() {
                 <TabsTrigger
                   key={tab.kind}
                   value={tab.kind}
+                  disabled={busy}
                   className="gap-1.5 font-mono text-xs data-[state=active]:bg-neon/10 data-[state=active]:text-neon"
                 >
-                  <Icon className="size-3.5 shrink-0" />
+                  {busy && tab.kind === kind ? (
+                    <Loader2 className="size-3.5 shrink-0 animate-spin" />
+                  ) : (
+                    <Icon className="size-3.5 shrink-0" />
+                  )}
                   <span className="truncate">{tab.label}</span>
                 </TabsTrigger>
               );
@@ -152,9 +157,20 @@ function Index() {
 
           {TABS.map((tab) => (
             <TabsContent key={tab.kind} value={tab.kind} className="mt-0">
-              <div className="scroll-slim min-h-[420px] rounded-lg border border-border bg-background/40 p-6">
+              <div
+                aria-busy={busy}
+                className="scroll-slim min-h-[420px] rounded-lg border border-border bg-background/40 p-6"
+              >
                 {busy ? (
-                  <TabSkeleton kind={tab.kind} />
+                  <div className="flex flex-col gap-4">
+                    <div className="flex items-center gap-2 font-mono text-xs text-neon">
+                      <Loader2 className="size-3.5 animate-spin" />
+                      analyzing your code — {tab.label.toLowerCase()} incoming…
+                    </div>
+                    <div className="pointer-events-none select-none opacity-70">
+                      <TabSkeleton kind={tab.kind} />
+                    </div>
+                  </div>
                 ) : result ? (
                   <ApiResultView
                     kind={tab.kind}
@@ -172,6 +188,7 @@ function Index() {
               </div>
             </TabsContent>
           ))}
+
         </Tabs>
       </section>
     </div>
