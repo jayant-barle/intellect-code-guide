@@ -222,7 +222,25 @@ export function ApiResultView({
   }
 
   if (kind === "bugs") {
-    if (!data.bugs?.length) return <Empty>No bugs detected.</Empty>;
+    if (!data.bugs?.length) {
+      return (
+        <div className="flex flex-col gap-3">
+          <ExportBar title="detected issues">
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              onClick={() => toast.info("No bugs to copy")}
+              className="h-8 gap-1.5 font-mono text-[11px]"
+            >
+              <Copy className="size-3.5" />
+              Copy to Clipboard
+            </Button>
+          </ExportBar>
+          <Empty>No bugs detected.</Empty>
+        </div>
+      );
+    }
     const bugsText = data.bugs
       .map((bug) => {
         const head = `${bug.title}${typeof bug.line === "number" ? ` (line ${bug.line})` : ""} [${bug.severity}]`;
