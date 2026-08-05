@@ -71,6 +71,12 @@ function Index() {
   const busy = mutation.isPending;
   const isEmpty = code.trim().length === 0;
 
+  const updateCode = (next: string) => {
+    setCode(next);
+    if (result) setResult(null);
+    setHighlightLine(null);
+  };
+
   const run = () => {
     if (isEmpty || busy) return;
     setHighlightLine(null);
@@ -91,6 +97,7 @@ function Index() {
               onClick={() => {
                 setCode(s.code);
                 setResult(null);
+                setHighlightLine(null);
               }}
               className="rounded-full border border-border bg-surface px-3 py-1 font-mono text-xs text-muted-foreground transition hover:border-neon/40 hover:text-neon"
             >
@@ -99,7 +106,7 @@ function Index() {
           ))}
         </div>
 
-        <CodeEditor value={code} onChange={setCode} highlightLine={highlightLine} />
+        <CodeEditor value={code} onChange={updateCode} highlightLine={highlightLine} />
 
         <Button
           size="lg"
