@@ -223,9 +223,17 @@ export function ApiResultView({
 
   if (kind === "bugs") {
     if (!data.bugs?.length) return <Empty>No bugs detected.</Empty>;
+    const bugsText = data.bugs
+      .map((bug) => {
+        const head = `${bug.title}${typeof bug.line === "number" ? ` (line ${bug.line})` : ""} [${bug.severity}]`;
+        return `${head}\nCause: ${bug.cause}${bug.fix ? `\nFix: ${bug.fix}` : ""}`;
+      })
+      .join("\n\n");
     return (
       <div className="flex flex-col gap-3">
-        <SectionHint>detected issues</SectionHint>
+        <ExportBar title="detected issues">
+          <CopyButton text={bugsText} label="Bugs" />
+        </ExportBar>
         {data.bugs.map((bug, i) => (
           <Alert key={`${bug.title}-${i}`} variant="destructive" className="bg-destructive/5">
             <Bug className="size-4" />
