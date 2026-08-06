@@ -63,6 +63,15 @@ const TABS: { kind: AnalysisKind; label: string; icon: typeof Bug }[] = [
   { kind: "bigo", label: "Complexity", icon: Gauge },
 ];
 
+const STEP_LABELS: Record<AnalysisKind, string> = {
+  explain: "explanation",
+  flowchart: "flowchart",
+  comments: "auto-comments",
+  bugs: "bug detection",
+  improve: "improvements",
+  bigo: "Big-O analysis",
+};
+
 function ErrorCopyButton({ text }: { text: string }) {
   const [copied, setCopied] = useState(false);
 
@@ -223,7 +232,7 @@ function Index() {
                     <AlertTriangle className="size-6 text-destructive" />
                     <div className="space-y-1">
                       <p className="font-mono text-sm text-destructive">
-                        Analysis failed
+                        Failed to generate {STEP_LABELS[tab.kind]}
                       </p>
                       <p className="max-w-sm font-mono text-xs text-muted-foreground">
                         {errorMessage}
@@ -244,9 +253,11 @@ function Index() {
                         <div className="mt-2 rounded-md border border-border bg-surface p-3 text-left">
                           <div className="flex items-start gap-2">
                             <pre className="flex-1 whitespace-pre-wrap break-all font-mono text-xs text-muted-foreground">
-                              {errorMessage}
+                              {`Failed step: ${STEP_LABELS[tab.kind]}\n\n${errorMessage}`}
                             </pre>
-                            <ErrorCopyButton text={errorMessage} />
+                            <ErrorCopyButton
+                              text={`Failed step: ${STEP_LABELS[tab.kind]}\n\n${errorMessage}`}
+                            />
                           </div>
                         </div>
                       </CollapsibleContent>
