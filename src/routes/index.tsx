@@ -72,10 +72,15 @@ function Index() {
 
   const busy = mutation.isPending;
   const isEmpty = code.trim().length === 0;
+  const errorMessage =
+    mutation.error instanceof Error && mutation.error.message
+      ? mutation.error.message
+      : "Something went wrong while analyzing your code. Please try again.";
 
   const updateCode = (next: string) => {
     setCode(next);
     if (result) setResult(null);
+    if (mutation.isError) mutation.reset();
     setHighlightLine(null);
   };
 
