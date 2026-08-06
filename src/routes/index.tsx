@@ -3,12 +3,14 @@ import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
 import {
+  AlertTriangle,
   Bug,
   Gauge,
   GitBranch,
   Loader2,
   MessageSquareCode,
   Play,
+  RefreshCw,
   ListTree,
   Wand2,
 } from "lucide-react";
@@ -170,6 +172,28 @@ function Index() {
                     <div className="pointer-events-none select-none opacity-70">
                       <TabSkeleton kind={tab.kind} />
                     </div>
+                  </div>
+                ) : mutation.isError ? (
+                  <div className="flex h-full min-h-[360px] flex-col items-center justify-center gap-4 text-center">
+                    <AlertTriangle className="size-6 text-destructive" />
+                    <div className="space-y-1">
+                      <p className="font-mono text-sm text-destructive">
+                        Analysis failed
+                      </p>
+                      <p className="max-w-sm font-mono text-xs text-muted-foreground">
+                        {errorMessage}
+                      </p>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={run}
+                      disabled={isEmpty}
+                      className="font-mono"
+                    >
+                      <RefreshCw className="size-3.5" />
+                      Retry analysis
+                    </Button>
                   </div>
                 ) : result ? (
                   <ApiResultView
