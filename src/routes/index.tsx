@@ -5,6 +5,9 @@ import { toast } from "sonner";
 import {
   AlertTriangle,
   Bug,
+  Check,
+  ChevronRight,
+  Copy,
   Gauge,
   GitBranch,
   Loader2,
@@ -20,6 +23,11 @@ import { TabSkeleton } from "@/components/TabSkeleton";
 
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import type { AnalysisKind } from "@/lib/analysis-types";
 import { requestAnalysis, type AnalyzeResponse } from "@/lib/api-analysis";
 import { SAMPLES } from "@/lib/samples";
@@ -54,6 +62,38 @@ const TABS: { kind: AnalysisKind; label: string; icon: typeof Bug }[] = [
   { kind: "improve", label: "Improvements", icon: Wand2 },
   { kind: "bigo", label: "Complexity", icon: Gauge },
 ];
+
+function ErrorCopyButton({ text }: { text: string }) {
+  const [copied, setCopied] = useState(false);
+
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      toast.success("Error details copied");
+      setTimeout(() => setCopied(false), 1600);
+    } catch {
+      toast.error("Copy failed. Please try again.");
+    }
+  };
+
+  return (
+    <Button
+      type="button"
+      size="sm"
+      variant="outline"
+      onClick={copy}
+      className="h-7 gap-1.5 font-mono text-[11px]"
+    >
+      {copied ? (
+        <Check className="size-3 text-neon" />
+      ) : (
+        <Copy className="size-3" />
+      )}
+      {copied ? "Copied" : "Copy"}
+    </Button>
+  );
+}
 
 function Index() {
   const [code, setCode] = useState(SAMPLES[0].code);
@@ -189,6 +229,28 @@ function Index() {
                         {errorMessage}
                       </p>
                     </div>
+                    <Collapsible className="w-full max-w-sm">
+                      <CollapsibleTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="group gap-1.5 font-mono text-xs"
+                        >
+                          <ChevronRight className="size-3.5 transition-transform group-data-[state=open]:rotate-90" />
+                          View details
+                        </Button>
+                      </CollapsibleTrigger>
+                      <CollapsibleContent>
+                        <div className="mt-2 rounded-md border border-border bg-surface p-3 text-left">
+                          <div className="flex items-start gap-2">
+                            <pre className="flex-1 whitespace-pre-wrap break-all font-mono text-xs text-muted-foreground">
+                              {errorMessage}
+                            </pre>
+                            <ErrorCopyButton text={errorMessage} />
+                          </div>
+                        </div>
+                      </CollapsibleContent>
+                    </Collapsible>
                     <Button
                       variant="outline"
                       size="sm"
