@@ -3,6 +3,7 @@ import SimpleEditor from "react-simple-code-editor";
 import Prism from "prismjs";
 import "prismjs/components/prism-python";
 import "prismjs/themes/prism-tomorrow.css";
+import type { Annotation } from "@/lib/annotations";
 
 function resolveEditor(mod: unknown): typeof SimpleEditor {
   let candidate: any = mod;
