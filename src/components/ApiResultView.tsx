@@ -18,6 +18,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import type { AnalysisKind } from "@/lib/analysis-types";
 import type { AnalyzeResponse } from "@/lib/api-analysis";
+import { improvementLines } from "@/lib/annotations";
 
 const severityStyles: Record<string, string> = {
   high: "border-destructive/40 bg-destructive/10 text-destructive",
@@ -136,12 +137,15 @@ function FlowchartView({ chart }: { chart: string }) {
 export function ApiResultView({
   kind,
   data,
+  code,
   onHoverLine,
 }: {
   kind: AnalysisKind;
   data: AnalyzeResponse;
+  code: string;
   onHoverLine?: (line: number | null) => void;
 }) {
+  const tipLines = improvementLines(code, data);
   if (kind === "explain") {
     if (!data.explanation?.length) return <Empty>No explanation returned.</Empty>;
     return (
@@ -253,7 +257,15 @@ export function ApiResultView({
           <CopyButton text={bugsText} label="Bugs" />
         </ExportBar>
         {data.bugs.map((bug, i) => (
-          <Alert key={`${bug.title}-${i}`} variant="destructive" className="bg-destructive/5">
+          <Alert
+            key={`${bug.title}-${i}`}
+            variant="destructive"
+            className="bg-destructive/5"
+            onMouseEnter={() =>
+              typeof bug.line === "number" ? onHoverLine?.(bug.line) : undefined
+            }
+            onMouseLeave={() => onHoverLine?.(null)}
+          >
             <Bug className="size-4" />
             <AlertTitle className="flex flex-wrap items-center gap-2">
               <span className="min-w-0">{bug.title}</span>
@@ -293,10 +305,17 @@ export function ApiResultView({
           <Alert
             key={`${tip.title}-${i}`}
             className="border-warn/40 bg-warn/5 text-warn [&>svg]:text-warn"
+            onMouseEnter={() => onHoverLine?.(tipLines[i] ?? null)}
+            onMouseLeave={() => onHoverLine?.(null)}
           >
             <AlertTriangle className="size-4" />
             <AlertTitle className="flex flex-wrap items-center gap-2">
               <span className="min-w-0">{tip.title}</span>
+              {tipLines[i] ? (
+                <span className="font-mono text-[11px] text-muted-foreground">
+                  line {tipLines[i]}
+                </span>
+              ) : null}
             </AlertTitle>
             <AlertDescription className="flex flex-col gap-2 text-muted-foreground">
               <span>{tip.rationale}</span>

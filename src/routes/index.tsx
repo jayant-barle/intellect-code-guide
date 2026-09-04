@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation } from "@tanstack/react-query";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import {
   AlertTriangle,
@@ -31,6 +31,7 @@ import {
 import type { AnalysisKind } from "@/lib/analysis-types";
 import { requestAnalysis, type AnalyzeResponse } from "@/lib/api-analysis";
 import { SAMPLES } from "@/lib/samples";
+import { buildAnnotations } from "@/lib/annotations";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -119,6 +120,10 @@ function Index() {
     },
   });
 
+  const annotations = useMemo(() => buildAnnotations(code, result), [code, result]);
+  const bugCount = annotations.filter((a) => a.type === "bug").length;
+  const tipCount = annotations.length - bugCount;
+
   const busy = mutation.isPending;
   const isEmpty = code.trim().length === 0;
   const errorMessage =
@@ -162,7 +167,25 @@ function Index() {
           ))}
         </div>
 
-        <CodeEditor value={code} onChange={updateCode} highlightLine={highlightLine} />
+        <CodeEditor
+          value={code}
+          onChange={updateCode}
+          highlightLine={highlightLine}
+          annotations={annotations}
+        />
+
+        {annotations.length ? (
+          <div className="flex flex-wrap items-center gap-4 font-mono text-[11px] text-muted-foreground">
+            <span className="flex items-center gap-1.5">
+              <span className="size-1.5 rounded-full bg-destructive" />
+              {bugCount} bug{bugCount === 1 ? "" : "s"} highlighted
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="size-1.5 rounded-full bg-warn" />
+              {tipCount} improvement{tipCount === 1 ? "" : "s"} highlighted
+            </span>
+          </div>
+        ) : null}
 
         <Button
           size="lg"
@@ -277,6 +300,7 @@ function Index() {
                   <ApiResultView
                     kind={tab.kind}
                     data={result}
+                    code={code}
                     onHoverLine={setHighlightLine}
                   />
                 ) : (
