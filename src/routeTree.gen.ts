@@ -12,7 +12,6 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as HistoryRouteImport } from './routes/history'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as ApiAnalyzeRouteImport } from './routes/api/analyze'
 
 const SettingsRoute = SettingsRouteImport.update({
   id: '/settings',
@@ -29,44 +28,35 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiAnalyzeRoute = ApiAnalyzeRouteImport.update({
-  id: '/api/analyze',
-  path: '/api/analyze',
-  getParentRoute: () => rootRouteImport,
-} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/history': typeof HistoryRoute
   '/settings': typeof SettingsRoute
-  '/api/analyze': typeof ApiAnalyzeRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/history': typeof HistoryRoute
   '/settings': typeof SettingsRoute
-  '/api/analyze': typeof ApiAnalyzeRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/history': typeof HistoryRoute
   '/settings': typeof SettingsRoute
-  '/api/analyze': typeof ApiAnalyzeRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/history' | '/settings' | '/api/analyze'
+  fullPaths: '/' | '/history' | '/settings'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/history' | '/settings' | '/api/analyze'
-  id: '__root__' | '/' | '/history' | '/settings' | '/api/analyze'
+  to: '/' | '/history' | '/settings'
+  id: '__root__' | '/' | '/history' | '/settings'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   HistoryRoute: typeof HistoryRoute
   SettingsRoute: typeof SettingsRoute
-  ApiAnalyzeRoute: typeof ApiAnalyzeRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -92,13 +82,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/analyze': {
-      id: '/api/analyze'
-      path: '/api/analyze'
-      fullPath: '/api/analyze'
-      preLoaderRoute: typeof ApiAnalyzeRouteImport
-      parentRoute: typeof rootRouteImport
-    }
   }
 }
 
@@ -106,7 +89,6 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   HistoryRoute: HistoryRoute,
   SettingsRoute: SettingsRoute,
-  ApiAnalyzeRoute: ApiAnalyzeRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

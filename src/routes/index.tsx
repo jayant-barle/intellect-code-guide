@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import {
@@ -29,7 +30,8 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import type { AnalysisKind } from "@/lib/analysis-types";
-import { requestAnalysis, type AnalyzeResponse } from "@/lib/api-analysis";
+import type { AnalyzeResponse } from "@/lib/api-analysis";
+import { analyzeCode } from "@/lib/analyze.functions";
 import { SAMPLES } from "@/lib/samples";
 import { buildAnnotations } from "@/lib/annotations";
 
@@ -110,10 +112,16 @@ function Index() {
   const [kind, setKind] = useState<AnalysisKind>("explain");
   const [highlightLine, setHighlightLine] = useState<number | null>(null);
   const [result, setResult] = useState<AnalyzeResponse | null>(null);
+  const [cached, setCached] = useState(false);
+
+  const runAnalysis = useServerFn(analyzeCode);
 
   const mutation = useMutation({
-    mutationFn: (python: string) => requestAnalysis(python),
-    onSuccess: (data) => setResult(data),
+    mutationFn: (python: string) => runAnalysis({ data: { code: python } }),
+    onSuccess: (run) => {
+      setResult(run.result);
+      setCached(run.cached);
+    },
     onError: () => {
       setResult(null);
       toast.error("Analysis failed. Please try again.");
@@ -134,6 +142,7 @@ function Index() {
   const updateCode = (next: string) => {
     setCode(next);
     if (result) setResult(null);
+    setCached(false);
     if (mutation.isError) mutation.reset();
     setHighlightLine(null);
   };
@@ -185,6 +194,12 @@ function Index() {
               {tipCount} improvement{tipCount === 1 ? "" : "s"} highlighted
             </span>
           </div>
+        ) : null}
+
+        {result && cached ? (
+          <p className="font-mono text-[11px] text-neon">
+            served instantly from your saved analyses
+          </p>
         ) : null}
 
         <Button
