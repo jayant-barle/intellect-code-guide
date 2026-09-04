@@ -27,17 +27,3 @@ export type AnalyzeResponse = {
   improvements: ApiImprovement[];
   complexity: ApiComplexity;
 };
-
-export async function requestAnalysis(pythonCode: string): Promise<AnalyzeResponse> {
-  const res = await fetch("/api/analyze", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ python_code: pythonCode }),
-  });
-
-  if (!res.ok) {
-    throw new Error(`Analysis request failed with status ${res.status}`);
-  }
-
-  return (await res.json()) as AnalyzeResponse;
-}
