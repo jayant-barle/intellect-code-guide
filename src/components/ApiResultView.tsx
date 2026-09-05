@@ -21,7 +21,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import type { AnalysisKind } from "@/lib/analysis-types";
 import type { AnalyzeResponse } from "@/lib/api-analysis";
-import { improvementLines } from "@/lib/annotations";
+import { findSnippetLine, improvementLines } from "@/lib/annotations";
 import { computeQualityScore } from "@/lib/quality-score";
 import {
   applyImprovement,
@@ -425,7 +425,8 @@ export function ApiResultView({
       let current = code;
       let count = 0;
       for (const tip of applicableTips) {
-        const res = applyImprovement(current, tip.before!, tip.after!);
+        const lineHint = findSnippetLine(current, tip.before!);
+        const res = applyImprovement(current, tip.before!, tip.after!, lineHint);
         if (res.success) {
           current = res.newCode;
           count++;
@@ -506,9 +507,9 @@ export function ApiResultView({
               {tip.before && tip.after && onApplyFix ? (
                 <div className="mt-2 flex items-center justify-between">
                   <ApplyFixButton
-                    label={`Applied improvement: ${tip.title}`}
+                    label={`Applied: ${tip.title}`}
                     onApply={() => {
-                      const res = applyImprovement(code, tip.before!, tip.after!);
+                      const res = applyImprovement(code, tip.before!, tip.after!, tipLines[i]);
                       if (res.success) {
                         onApplyFix(res.newCode, `Applied: ${tip.title}`);
                         return { success: true };
@@ -516,7 +517,7 @@ export function ApiResultView({
                       return { success: false, message: res.message };
                     }}
                     onRevert={() => {
-                      const res = applyImprovement(code, tip.after!, tip.before!);
+                      const res = applyImprovement(code, tip.after!, tip.before!, tipLines[i]);
                       if (res.success) {
                         onApplyFix(res.newCode, `Reverted: ${tip.title}`);
                         return true;
