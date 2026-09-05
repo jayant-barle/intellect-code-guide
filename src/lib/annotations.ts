@@ -23,18 +23,12 @@ export function findSnippetLine(code: string, snippet?: string): number | null {
 }
 
 /** Line numbers for each improvement, aligned with data.improvements order. */
-export function improvementLines(
-  code: string,
-  data: AnalyzeResponse | null,
-): (number | null)[] {
+export function improvementLines(code: string, data: AnalyzeResponse | null): (number | null)[] {
   if (!data?.improvements) return [];
   return data.improvements.map((tip) => findSnippetLine(code, tip.before));
 }
 
-export function buildAnnotations(
-  code: string,
-  data: AnalyzeResponse | null,
-): Annotation[] {
+export function buildAnnotations(code: string, data: AnalyzeResponse | null): Annotation[] {
   if (!data) return [];
   const out: Annotation[] = [];
 

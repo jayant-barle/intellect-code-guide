@@ -18,6 +18,29 @@ function Rows({ count }: { count: number }) {
 }
 
 export function TabSkeleton({ kind }: { kind: AnalysisKind }) {
+  if (kind === "quality") {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center gap-6 rounded-2xl border border-border bg-surface p-6">
+          <Skeleton className="size-28 shrink-0 rounded-full" />
+          <div className="flex-1 space-y-2">
+            <Skeleton className="h-6 w-36" />
+            <Skeleton className="h-4 w-64" />
+          </div>
+        </div>
+        <div className="grid gap-4 md:grid-cols-3">
+          {Array.from({ length: 3 }, (_, i) => (
+            <div key={i} className="space-y-3 rounded-xl border border-border bg-surface p-5">
+              <Skeleton className="h-4 w-28" />
+              <Skeleton className="h-2 w-full rounded-full" />
+              <Skeleton className="h-3 w-40" />
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   if (kind === "flowchart") {
     return (
       <div className="space-y-4">
@@ -31,11 +54,7 @@ export function TabSkeleton({ kind }: { kind: AnalysisKind }) {
     return (
       <div className="space-y-3 rounded-lg border border-border bg-surface p-5">
         {Array.from({ length: 9 }, (_, i) => (
-          <Skeleton
-            key={i}
-            className="h-3.5"
-            style={{ width: `${45 + ((i * 17) % 50)}%` }}
-          />
+          <Skeleton key={i} className="h-3.5" style={{ width: `${45 + ((i * 17) % 50)}%` }} />
         ))}
       </div>
     );

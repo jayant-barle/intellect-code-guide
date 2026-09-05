@@ -46,7 +46,6 @@ export function MermaidChart({ chart }: { chart: string }) {
     };
   }, [chart, id]);
 
-
   if (error) {
     return <p className="font-mono text-sm text-destructive">{error}</p>;
   }

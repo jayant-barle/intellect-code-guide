@@ -13,12 +13,14 @@ import {
 import { toast } from "sonner";
 
 import { MermaidChart } from "@/components/MermaidChart";
+import { QualityScoreView } from "@/components/QualityScoreView";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import type { AnalysisKind } from "@/lib/analysis-types";
 import type { AnalyzeResponse } from "@/lib/api-analysis";
 import { improvementLines } from "@/lib/annotations";
+import { computeQualityScore } from "@/lib/quality-score";
 
 const severityStyles: Record<string, string> = {
   high: "border-destructive/40 bg-destructive/10 text-destructive",
@@ -56,11 +58,7 @@ function CopyButton({ text, label }: { text: string; label: string }) {
       onClick={copy}
       className="h-8 gap-1.5 font-mono text-[11px]"
     >
-      {copied ? (
-        <Check className="size-3.5 text-neon" />
-      ) : (
-        <Copy className="size-3.5" />
-      )}
+      {copied ? <Check className="size-3.5 text-neon" /> : <Copy className="size-3.5" />}
       {copied ? "Copied" : "Copy to Clipboard"}
     </Button>
   );
@@ -139,13 +137,21 @@ export function ApiResultView({
   data,
   code,
   onHoverLine,
+  onNavigateTab,
 }: {
   kind: AnalysisKind;
   data: AnalyzeResponse;
   code: string;
   onHoverLine?: (line: number | null) => void;
+  onNavigateTab?: (kind: AnalysisKind) => void;
 }) {
   const tipLines = improvementLines(code, data);
+
+  if (kind === "quality") {
+    const report = computeQualityScore(code, data);
+    return <QualityScoreView report={report} onNavigateTab={onNavigateTab} />;
+  }
+
   if (kind === "explain") {
     if (!data.explanation?.length) return <Empty>No explanation returned.</Empty>;
     return (
@@ -154,8 +160,9 @@ export function ApiResultView({
           <CopyButton
             label="Explanation"
             text={data.explanation
-              .map((row) =>
-                `Line ${row.line}${row.code ? `: ${row.code.trim()}` : ""}\n${row.explanation}`,
+              .map(
+                (row) =>
+                  `Line ${row.line}${row.code ? `: ${row.code.trim()}` : ""}\n${row.explanation}`,
               )
               .join("\n\n")}
           />

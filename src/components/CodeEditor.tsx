@@ -6,9 +6,14 @@ import "prismjs/themes/prism-tomorrow.css";
 import type { Annotation } from "@/lib/annotations";
 
 function resolveEditor(mod: unknown): typeof SimpleEditor {
-  let candidate: any = mod;
-  while (candidate && typeof candidate === "object" && candidate.default) {
-    candidate = candidate.default;
+  let candidate = mod;
+  while (
+    candidate &&
+    typeof candidate === "object" &&
+    "default" in candidate &&
+    candidate.default
+  ) {
+    candidate = (candidate as { default: unknown }).default;
   }
   return candidate as typeof SimpleEditor;
 }
@@ -55,7 +60,9 @@ export function CodeEditor({
             return (
               <div
                 key={i}
-                title={note ? `${note.type === "bug" ? "Bug" : "Improvement"}: ${note.title}` : undefined}
+                title={
+                  note ? `${note.type === "bug" ? "Bug" : "Improvement"}: ${note.title}` : undefined
+                }
                 className={`flex items-center justify-end gap-1.5 ${
                   highlightLine === n ? "-mx-2 bg-neon/15 px-2 text-neon" : ""
                 }`}
@@ -63,20 +70,12 @@ export function CodeEditor({
                 <span
                   aria-hidden
                   className={`size-1.5 shrink-0 rounded-full ${
-                    note
-                      ? note.type === "bug"
-                        ? "bg-destructive"
-                        : "bg-warn"
-                      : "bg-transparent"
+                    note ? (note.type === "bug" ? "bg-destructive" : "bg-warn") : "bg-transparent"
                   }`}
                 />
                 <span
                   className={
-                    note
-                      ? note.type === "bug"
-                        ? "text-destructive"
-                        : "text-warn"
-                      : undefined
+                    note ? (note.type === "bug" ? "text-destructive" : "text-warn") : undefined
                   }
                 >
                   {n}
@@ -95,9 +94,7 @@ export function CodeEditor({
               key={`${a.type}-${a.line}`}
               aria-hidden
               className={`pointer-events-none absolute inset-x-0 h-6 border-l-2 ${
-                a.type === "bug"
-                  ? "border-destructive bg-destructive/10"
-                  : "border-warn bg-warn/10"
+                a.type === "bug" ? "border-destructive bg-destructive/10" : "border-warn bg-warn/10"
               }`}
               style={{ top: `calc(1rem + ${(a.line - 1) * 1.5}rem - ${scrollTop}px)` }}
             />
@@ -113,9 +110,7 @@ export function CodeEditor({
           value={value}
           onValueChange={onChange}
           onScroll={(e) => setScrollTop((e.target as HTMLElement).scrollTop)}
-          highlight={(code) =>
-            Prism.highlight(code, Prism.languages.python, "python")
-          }
+          highlight={(code) => Prism.highlight(code, Prism.languages.python, "python")}
           padding={16}
           textareaId="python-code"
           textareaClassName="outline-none"

@@ -37,9 +37,7 @@ export function AppSidebar() {
               <p className="truncate font-mono text-sm font-semibold text-sidebar-foreground">
                 PyLens
               </p>
-              <p className="truncate text-[11px] text-muted-foreground">
-                AI code analysis
-              </p>
+              <p className="truncate text-[11px] text-muted-foreground">AI code analysis</p>
             </div>
           )}
         </Link>

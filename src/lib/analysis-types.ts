@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 export const ANALYSIS_KINDS = [
+  "quality",
   "explain",
   "flowchart",
   "comments",

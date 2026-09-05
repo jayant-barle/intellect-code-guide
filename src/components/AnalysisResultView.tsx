@@ -65,7 +65,9 @@ export function AnalysisResultView({
           onClick={() => setShowSource((v) => !v)}
           className="inline-flex items-center gap-1.5 font-mono text-xs text-muted-foreground transition-colors hover:text-neon"
         >
-          <ChevronDown className={cn("size-3.5 transition-transform", showSource && "rotate-180")} />
+          <ChevronDown
+            className={cn("size-3.5 transition-transform", showSource && "rotate-180")}
+          />
           {showSource ? "hide" : "view"} mermaid source
         </button>
         {showSource ? <CodeBlock code={result.data.mermaid} /> : null}

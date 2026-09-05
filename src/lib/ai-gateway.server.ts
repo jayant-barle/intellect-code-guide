@@ -9,5 +9,4 @@ export function createLovableAiGatewayProvider(apiKey: string) {
   });
 }
 
-
 export const ANALYSIS_MODEL = "google/gemini-3.6-flash";

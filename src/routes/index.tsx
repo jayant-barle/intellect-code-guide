@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import {
   AlertTriangle,
+  Award,
   Bug,
   Check,
   ChevronRight,
@@ -24,16 +25,13 @@ import { TabSkeleton } from "@/components/TabSkeleton";
 
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import type { AnalysisKind } from "@/lib/analysis-types";
 import type { AnalyzeResponse } from "@/lib/api-analysis";
 import { analyzeCode } from "@/lib/analyze.functions";
 import { SAMPLES } from "@/lib/samples";
 import { buildAnnotations } from "@/lib/annotations";
+import { computeQualityScore } from "@/lib/quality-score";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -58,6 +56,7 @@ export const Route = createFileRoute("/")({
 });
 
 const TABS: { kind: AnalysisKind; label: string; icon: typeof Bug }[] = [
+  { kind: "quality", label: "Quality Score", icon: Award },
   { kind: "explain", label: "Explanation", icon: ListTree },
   { kind: "flowchart", label: "Flowchart", icon: GitBranch },
   { kind: "comments", label: "Auto-Comments", icon: MessageSquareCode },
@@ -67,6 +66,7 @@ const TABS: { kind: AnalysisKind; label: string; icon: typeof Bug }[] = [
 ];
 
 const STEP_LABELS: Record<AnalysisKind, string> = {
+  quality: "code quality score",
   explain: "explanation",
   flowchart: "flowchart",
   comments: "auto-comments",
@@ -97,11 +97,7 @@ function ErrorCopyButton({ text }: { text: string }) {
       onClick={copy}
       className="h-7 gap-1.5 font-mono text-[11px]"
     >
-      {copied ? (
-        <Check className="size-3 text-neon" />
-      ) : (
-        <Copy className="size-3" />
-      )}
+      {copied ? <Check className="size-3 text-neon" /> : <Copy className="size-3" />}
       {copied ? "Copied" : "Copy"}
     </Button>
   );
@@ -129,6 +125,7 @@ function Index() {
   });
 
   const annotations = useMemo(() => buildAnnotations(code, result), [code, result]);
+  const qualityReport = useMemo(() => computeQualityScore(code, result), [code, result]);
   const bugCount = annotations.filter((a) => a.type === "bug").length;
   const tipCount = annotations.length - bugCount;
 
@@ -202,17 +199,8 @@ function Index() {
           </p>
         ) : null}
 
-        <Button
-          size="lg"
-          onClick={run}
-          disabled={busy || isEmpty}
-          className="w-full font-mono"
-        >
-          {busy ? (
-            <Loader2 className="size-4 animate-spin" />
-          ) : (
-            <Play className="size-4" />
-          )}
+        <Button size="lg" onClick={run} disabled={busy || isEmpty} className="w-full font-mono">
+          {busy ? <Loader2 className="size-4 animate-spin" /> : <Play className="size-4" />}
           {busy ? "Analyzing…" : "Analyze Code"}
         </Button>
         {isEmpty ? (
@@ -223,12 +211,48 @@ function Index() {
       </section>
 
       <section className="flex min-w-0 flex-col gap-4">
-        <Tabs
-          value={kind}
-          onValueChange={(v) => setKind(v as AnalysisKind)}
-          className="gap-4"
-        >
-          <TabsList className="grid h-auto w-full grid-cols-2 gap-1 bg-surface p-1.5 sm:grid-cols-3 xl:grid-cols-6">
+        {result && !busy ? (
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-surface px-4 py-2.5">
+            <div className="flex flex-wrap items-center gap-3">
+              <div className="flex items-center gap-2">
+                <Award className="size-4 text-neon" />
+                <span className="font-mono text-xs font-semibold text-foreground">
+                  Code Quality:
+                </span>
+                <span className="font-mono text-sm font-bold text-neon">
+                  {qualityReport.overallScore}
+                  <span className="text-xs font-normal text-muted-foreground">/100</span>
+                </span>
+              </div>
+              <span
+                className={`rounded border px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider ${
+                  qualityReport.badgeTone === "neon"
+                    ? "border-neon/30 bg-neon/10 text-neon"
+                    : qualityReport.badgeTone === "warn"
+                      ? "border-warn/30 bg-warn/10 text-warn"
+                      : qualityReport.badgeTone === "destructive"
+                        ? "border-destructive/30 bg-destructive/10 text-destructive"
+                        : "border-border bg-surface-2 text-muted-foreground"
+                }`}
+              >
+                Grade {qualityReport.letterGrade} · {qualityReport.badgeText}
+              </span>
+            </div>
+            {kind !== "quality" ? (
+              <button
+                type="button"
+                onClick={() => setKind("quality")}
+                className="inline-flex items-center gap-1 font-mono text-xs text-muted-foreground transition-colors hover:text-neon"
+              >
+                <span>View breakdown</span>
+                <ChevronRight className="size-3" />
+              </button>
+            ) : null}
+          </div>
+        ) : null}
+
+        <Tabs value={kind} onValueChange={(v) => setKind(v as AnalysisKind)} className="gap-4">
+          <TabsList className="grid h-auto w-full grid-cols-2 gap-1 bg-surface p-1.5 sm:grid-cols-4 xl:grid-cols-7">
             {TABS.map((tab) => {
               const Icon = tab.icon;
               return (
@@ -317,6 +341,7 @@ function Index() {
                     data={result}
                     code={code}
                     onHoverLine={setHighlightLine}
+                    onNavigateTab={setKind}
                   />
                 ) : (
                   <div className="flex h-full min-h-[360px] flex-col items-center justify-center gap-3 text-center text-muted-foreground">
@@ -329,7 +354,6 @@ function Index() {
               </div>
             </TabsContent>
           ))}
-
         </Tabs>
       </section>
     </div>

@@ -7,7 +7,10 @@ import { Badge } from "@/components/ui/badge";
 import type { AnalysisKind } from "@/lib/analysis-types";
 
 const MOCK_EXPLANATION = [
-  { line: 1, text: "Defines a function `two_sum` that takes a list of numbers and a target value." },
+  {
+    line: 1,
+    text: "Defines a function `two_sum` that takes a list of numbers and a target value.",
+  },
   { line: 2, text: "Creates an empty dictionary to remember numbers we've already seen." },
   { line: 3, text: "Loops over the list, giving both the index `i` and the value `n`." },
   { line: 4, text: "Calculates the missing partner needed to reach the target." },
@@ -123,8 +126,6 @@ function FlowchartMock() {
     </div>
   );
 }
-
-
 
 function BugsMock() {
   return (

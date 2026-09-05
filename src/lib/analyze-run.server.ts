@@ -48,9 +48,8 @@ export async function generateAnalysis(pythonCode: string): Promise<AnalyzeRespo
   if (!apiKey) throw new Error("AI is not configured.");
 
   const { generateText } = await import("ai");
-  const { createLovableAiGatewayProvider, ANALYSIS_MODEL } = await import(
-    "@/lib/ai-gateway.server"
-  );
+  const { createLovableAiGatewayProvider, ANALYSIS_MODEL } =
+    await import("@/lib/ai-gateway.server");
 
   const gateway = createLovableAiGatewayProvider(apiKey);
   const { text } = await generateText({

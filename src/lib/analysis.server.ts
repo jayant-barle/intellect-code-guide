@@ -18,7 +18,7 @@ const SYSTEM =
 
 type Spec = { schema: z.ZodTypeAny; prompt: (code: string) => string };
 
-const SPECS: Record<AnalysisKind, Spec> = {
+const SPECS: Record<Exclude<AnalysisKind, "quality">, Spec> = {
   explain: {
     schema: explainSchema,
     prompt: (code) =>
@@ -51,14 +51,12 @@ const SPECS: Record<AnalysisKind, Spec> = {
   },
 };
 
-export async function runAnalysis(
-  kind: AnalysisKind,
-  code: string,
-): Promise<AnalysisResult> {
+export async function runAnalysis(kind: AnalysisKind, code: string): Promise<AnalysisResult> {
   const apiKey = process.env.LOVABLE_API_KEY;
   if (!apiKey) throw new Error("AI is not configured.");
 
-  const spec = SPECS[kind];
+  const spec = SPECS[kind as Exclude<AnalysisKind, "quality">];
+  if (!spec) throw new Error("Quality score is computed client-side.");
   const gateway = createLovableAiGatewayProvider(apiKey);
 
   try {
