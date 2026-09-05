@@ -24,21 +24,29 @@ export const analyzeCode = createServerFn({ method: "POST" })
 
     const codeHash = await hashCode(data.code);
 
-    const { data: cached } = await supabaseAdmin
-      .from("analyses")
-      .select("id, result, hit_count")
-      .eq("code_hash", codeHash)
-      .maybeSingle();
-
-    if (cached?.result) {
-      await supabaseAdmin
+    try {
+      const { data: cached } = await supabaseAdmin
         .from("analyses")
-        .update({
-          hit_count: (cached.hit_count ?? 1) + 1,
-          last_used_at: new Date().toISOString(),
-        })
-        .eq("id", cached.id);
-      return { result: cached.result as AnalyzeResponse, cached: true };
+        .select("id, result, hit_count")
+        .eq("code_hash", codeHash)
+        .maybeSingle();
+
+      if (cached?.result) {
+        try {
+          await supabaseAdmin
+            .from("analyses")
+            .update({
+              hit_count: (cached.hit_count ?? 1) + 1,
+              last_used_at: new Date().toISOString(),
+            })
+            .eq("id", cached.id);
+        } catch {
+          // ignore background hit_count increment error
+        }
+        return { result: cached.result as AnalyzeResponse, cached: true };
+      }
+    } catch (err) {
+      console.warn("[Database] Supabase cache lookup skipped:", err);
     }
 
     let result: AnalyzeResponse;
@@ -51,9 +59,13 @@ export const analyzeCode = createServerFn({ method: "POST" })
       throw new Error("Analysis failed. Please try again.");
     }
 
-    await supabaseAdmin
-      .from("analyses")
-      .upsert({ code_hash: codeHash, code: data.code, result }, { onConflict: "code_hash" });
+    try {
+      await supabaseAdmin
+        .from("analyses")
+        .upsert({ code_hash: codeHash, code: data.code, result }, { onConflict: "code_hash" });
+    } catch (err) {
+      console.warn("[Database] Supabase cache write skipped:", err);
+    }
 
     return { result, cached: false };
   });
@@ -69,12 +81,17 @@ export type HistoryEntry = {
 
 export const listAnalyses = createServerFn({ method: "GET" }).handler(
   async (): Promise<HistoryEntry[]> => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data } = await supabaseAdmin
-      .from("analyses")
-      .select("id, code, created_at, last_used_at, hit_count, result")
-      .order("last_used_at", { ascending: false })
-      .limit(50);
-    return (data ?? []) as HistoryEntry[];
+    try {
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+      const { data } = await supabaseAdmin
+        .from("analyses")
+        .select("id, code, created_at, last_used_at, hit_count, result")
+        .order("last_used_at", { ascending: false })
+        .limit(50);
+      return (data ?? []) as HistoryEntry[];
+    } catch (err) {
+      console.warn("[Database] Failed to list analyses:", err);
+      return [];
+    }
   },
 );

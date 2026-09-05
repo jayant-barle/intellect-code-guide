@@ -42,21 +42,34 @@ export async function hashCode(code: string) {
     .join("");
 }
 
-/** Calls the AI gateway and returns the parsed analysis payload. */
+/** Calls the AI gateway and returns the parsed analysis payload, or falls back to local analyzer. */
 export async function generateAnalysis(pythonCode: string): Promise<AnalyzeResponse> {
-  const apiKey = process.env["LOVABLE_API_KEY"];
-  if (!apiKey) throw new Error("AI is not configured.");
+  const apiKey =
+    process.env["LOVABLE_API_KEY"] ||
+    process.env["OPENAI_API_KEY"] ||
+    process.env["GEMINI_API_KEY"];
 
-  const { generateText } = await import("ai");
-  const { createLovableAiGatewayProvider, ANALYSIS_MODEL } =
-    await import("@/lib/ai-gateway.server");
+  if (!apiKey) {
+    const { analyzePythonLocally } = await import("@/lib/local-analyzer.server");
+    return analyzePythonLocally(pythonCode);
+  }
 
-  const gateway = createLovableAiGatewayProvider(apiKey);
-  const { text } = await generateText({
-    model: gateway(ANALYSIS_MODEL),
-    system: "You are a precise Python code analysis assistant. Respond with strict JSON only.",
-    prompt: buildAnalysisPrompt(pythonCode),
-  });
+  try {
+    const { generateText } = await import("ai");
+    const { createLovableAiGatewayProvider, ANALYSIS_MODEL } =
+      await import("@/lib/ai-gateway.server");
 
-  return parseJsonResponse(text) as AnalyzeResponse;
+    const gateway = createLovableAiGatewayProvider(apiKey);
+    const { text } = await generateText({
+      model: gateway(ANALYSIS_MODEL),
+      system: "You are a precise Python code analysis assistant. Respond with strict JSON only.",
+      prompt: buildAnalysisPrompt(pythonCode),
+    });
+
+    return parseJsonResponse(text) as AnalyzeResponse;
+  } catch (err) {
+    console.warn("[AI Gateway] Cloud analysis failed or unconfigured, using local analyzer:", err);
+    const { analyzePythonLocally } = await import("@/lib/local-analyzer.server");
+    return analyzePythonLocally(pythonCode);
+  }
 }
