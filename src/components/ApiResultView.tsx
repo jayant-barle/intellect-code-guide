@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useRef, useState, useCallback } from "react";
 import {
   AlertTriangle,
   Bug,
@@ -8,6 +8,8 @@ import {
   Database,
   Download,
   GitBranch,
+  Sparkles,
+  Undo2,
   Wand2,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -21,6 +23,11 @@ import type { AnalysisKind } from "@/lib/analysis-types";
 import type { AnalyzeResponse } from "@/lib/api-analysis";
 import { improvementLines } from "@/lib/annotations";
 import { computeQualityScore } from "@/lib/quality-score";
+import {
+  applyImprovement,
+  applyBugFix,
+  extractCodeFromFix,
+} from "@/lib/code-fixer";
 
 const severityStyles: Record<string, string> = {
   high: "border-destructive/40 bg-destructive/10 text-destructive",
@@ -60,6 +67,78 @@ function CopyButton({ text, label }: { text: string; label: string }) {
     >
       {copied ? <Check className="size-3.5 text-neon" /> : <Copy className="size-3.5" />}
       {copied ? "Copied" : "Copy to Clipboard"}
+    </Button>
+  );
+}
+
+function ApplyFixButton({
+  onApply,
+  onRevert,
+  label,
+  buttonText = "Apply Fix",
+}: {
+  onApply: () => { success: boolean; message?: string };
+  onRevert?: () => boolean;
+  label?: string;
+  buttonText?: string;
+}) {
+  const [applied, setApplied] = useState(false);
+
+  const handleClick = () => {
+    const res = onApply();
+    if (res.success) {
+      setApplied(true);
+      toast.success(label ?? "Fix applied to editor");
+    } else {
+      toast.error(res.message ?? "Could not apply fix — code pattern not found in editor.");
+    }
+  };
+
+  const handleRevert = () => {
+    if (onRevert) {
+      const ok = onRevert();
+      if (ok) {
+        setApplied(false);
+        toast.info("Reverted fix");
+      } else {
+        toast.error("Could not revert fix automatically.");
+      }
+    }
+  };
+
+  if (applied) {
+    return (
+      <div className="flex items-center gap-1.5">
+        <span className="inline-flex items-center gap-1 rounded-md border border-neon/30 bg-neon/10 px-2 py-1 font-mono text-[11px] text-neon">
+          <Check className="size-3" />
+          Applied
+        </span>
+        {onRevert && (
+          <Button
+            type="button"
+            size="sm"
+            variant="ghost"
+            onClick={handleRevert}
+            className="h-7 gap-1 px-2 font-mono text-[11px] text-muted-foreground hover:text-foreground"
+          >
+            <Undo2 className="size-3" />
+            Revert
+          </Button>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <Button
+      type="button"
+      size="sm"
+      variant="outline"
+      onClick={handleClick}
+      className="h-7 gap-1.5 font-mono text-[11px] border-neon/30 text-neon hover:bg-neon/10 hover:text-neon"
+    >
+      <Sparkles className="size-3" />
+      {buttonText}
     </Button>
   );
 }
@@ -138,12 +217,14 @@ export function ApiResultView({
   code,
   onHoverLine,
   onNavigateTab,
+  onApplyFix,
 }: {
   kind: AnalysisKind;
   data: AnalyzeResponse;
   code: string;
   onHoverLine?: (line: number | null) => void;
   onNavigateTab?: (kind: AnalysisKind) => void;
+  onApplyFix?: (newCode: string, description?: string) => void;
 }) {
   const tipLines = improvementLines(code, data);
 
@@ -296,6 +377,37 @@ export function ApiResultView({
                   {bug.fix}
                 </span>
               ) : null}
+              {bug.fix && onApplyFix && typeof bug.line === "number" ? (
+                <div className="mt-2 flex flex-wrap items-center gap-2">
+                  {extractCodeFromFix(bug.fix) ? (
+                    <ApplyFixButton
+                      buttonText="Apply Code Patch"
+                      label={`Applied code patch for line ${bug.line}`}
+                      onApply={() => {
+                        const snippet = extractCodeFromFix(bug.fix!);
+                        const res = applyBugFix(code, bug.line!, bug.fix!, snippet ?? undefined);
+                        if (res.success) {
+                          onApplyFix(res.newCode, `Applied code patch at line ${bug.line}`);
+                          return { success: true };
+                        }
+                        return { success: false, message: res.message };
+                      }}
+                    />
+                  ) : null}
+                  <ApplyFixButton
+                    buttonText="Insert Fix Comment"
+                    label={`Added fix comment above line ${bug.line}`}
+                    onApply={() => {
+                      const res = applyBugFix(code, bug.line!, bug.fix!);
+                      if (res.success) {
+                        onApplyFix(res.newCode, `Added fix comment above line ${bug.line}`);
+                        return { success: true };
+                      }
+                      return { success: false, message: res.message };
+                    }}
+                  />
+                </div>
+              ) : null}
             </AlertDescription>
           </Alert>
         ))}
@@ -305,9 +417,44 @@ export function ApiResultView({
 
   if (kind === "improve") {
     if (!data.improvements?.length) return <Empty>No improvements suggested.</Empty>;
+
+    const applicableTips = data.improvements.filter((t) => t.before && t.after);
+
+    const handleApplyAll = () => {
+      if (!onApplyFix || !applicableTips.length) return;
+      let current = code;
+      let count = 0;
+      for (const tip of applicableTips) {
+        const res = applyImprovement(current, tip.before!, tip.after!);
+        if (res.success) {
+          current = res.newCode;
+          count++;
+        }
+      }
+      if (count > 0) {
+        onApplyFix(current, `Batch applied ${count} improvement${count > 1 ? "s" : ""}`);
+      } else {
+        toast.error("Could not match improvement patterns in current code.");
+      }
+    };
+
     return (
       <div className="flex flex-col gap-3">
-        <SectionHint>suggestions</SectionHint>
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <SectionHint>suggestions</SectionHint>
+          {onApplyFix && applicableTips.length > 1 && (
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              onClick={handleApplyAll}
+              className="h-8 gap-1.5 font-mono text-[11px] border-neon/40 bg-neon/10 text-neon hover:bg-neon/20"
+            >
+              <Sparkles className="size-3.5" />
+              Apply All ({applicableTips.length})
+            </Button>
+          )}
+        </div>
         {data.improvements.map((tip, i) => (
           <Alert
             key={`${tip.title}-${i}`}
@@ -327,17 +474,56 @@ export function ApiResultView({
             <AlertDescription className="flex flex-col gap-2 text-muted-foreground">
               <span>{tip.rationale}</span>
               {tip.before || tip.after ? (
-                <div className="grid gap-2 sm:grid-cols-2">
+                <div className="grid gap-2 pt-1 sm:grid-cols-2 font-mono text-xs">
                   {tip.before ? (
-                    <pre className="scroll-slim overflow-x-auto rounded-md border border-border bg-surface p-3 font-mono text-xs text-muted-foreground">
-                      <code>{tip.before}</code>
-                    </pre>
+                    <div className="overflow-hidden rounded-md border border-destructive/25 bg-surface">
+                      <div className="flex items-center justify-between border-b border-destructive/20 bg-destructive/5 px-3 py-1.5 text-[10px]">
+                        <span className="font-semibold text-destructive flex items-center gap-1">
+                          <span>−</span> Current Code
+                        </span>
+                        <CopyButton text={tip.before} label="Current code" />
+                      </div>
+                      <pre className="scroll-slim overflow-x-auto p-3 text-muted-foreground leading-relaxed">
+                        <code>{tip.before}</code>
+                      </pre>
+                    </div>
                   ) : null}
                   {tip.after ? (
-                    <pre className="scroll-slim overflow-x-auto rounded-md border border-neon/30 bg-neon/5 p-3 font-mono text-xs text-foreground">
-                      <code>{tip.after}</code>
-                    </pre>
+                    <div className="overflow-hidden rounded-md border border-neon/30 bg-surface">
+                      <div className="flex items-center justify-between border-b border-neon/20 bg-neon/5 px-3 py-1.5 text-[10px]">
+                        <span className="font-semibold text-neon flex items-center gap-1">
+                          <span>+</span> Recommended Replacement
+                        </span>
+                        <CopyButton text={tip.after} label="Recommended replacement" />
+                      </div>
+                      <pre className="scroll-slim overflow-x-auto p-3 text-foreground leading-relaxed">
+                        <code>{tip.after}</code>
+                      </pre>
+                    </div>
                   ) : null}
+                </div>
+              ) : null}
+              {tip.before && tip.after && onApplyFix ? (
+                <div className="mt-2 flex items-center justify-between">
+                  <ApplyFixButton
+                    label={`Applied improvement: ${tip.title}`}
+                    onApply={() => {
+                      const res = applyImprovement(code, tip.before!, tip.after!);
+                      if (res.success) {
+                        onApplyFix(res.newCode, `Applied: ${tip.title}`);
+                        return { success: true };
+                      }
+                      return { success: false, message: res.message };
+                    }}
+                    onRevert={() => {
+                      const res = applyImprovement(code, tip.after!, tip.before!);
+                      if (res.success) {
+                        onApplyFix(res.newCode, `Reverted: ${tip.title}`);
+                        return true;
+                      }
+                      return false;
+                    }}
+                  />
                 </div>
               ) : null}
             </AlertDescription>

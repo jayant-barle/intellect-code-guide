@@ -31,6 +31,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ReviewCompareModal } from "@/components/ReviewCompareModal";
+import { QualityTrendChart } from "@/components/QualityTrendChart";
 import { listAnalyses, type HistoryEntry } from "@/lib/analyze.functions";
 import { computeQualityScore } from "@/lib/quality-score";
 
@@ -293,6 +294,11 @@ function ReviewPage() {
             <p className="font-mono text-[10px] text-muted-foreground">across all saved versions</p>
           </div>
         </div>
+      ) : null}
+
+      {/* Quality Trend Chart */}
+      {entriesWithReports.length > 0 ? (
+        <QualityTrendChart data={entriesWithReports} />
       ) : null}
 
       {/* Search & Filter Toolbar */}

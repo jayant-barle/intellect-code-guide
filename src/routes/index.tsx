@@ -17,6 +17,8 @@ import {
   Play,
   RefreshCw,
   ListTree,
+  Sparkles,
+  Undo2,
   Wand2,
 } from "lucide-react";
 import { CodeEditor } from "@/components/CodeEditor";
@@ -109,6 +111,7 @@ function Index() {
   const [highlightLine, setHighlightLine] = useState<number | null>(null);
   const [result, setResult] = useState<AnalyzeResponse | null>(null);
   const [cached, setCached] = useState(false);
+  const [codeHistory, setCodeHistory] = useState<string[]>([]);
 
   useEffect(() => {
     try {
@@ -118,6 +121,7 @@ function Index() {
         setCode(pendingCode);
         setResult(null);
         setCached(false);
+        setCodeHistory([]);
       }
     } catch {
       // ignore
@@ -158,6 +162,29 @@ function Index() {
     setHighlightLine(null);
   };
 
+  const handleApplyFix = (newCode: string, description?: string) => {
+    setCodeHistory((prev) => [...prev, code]);
+    setCode(newCode);
+    setHighlightLine(null);
+    toast.success(description ?? "Fix applied to editor", {
+      action: {
+        label: "Undo",
+        onClick: () => handleUndo(),
+      },
+    });
+  };
+
+  const handleUndo = () => {
+    setCodeHistory((prev) => {
+      if (prev.length === 0) return prev;
+      const lastCode = prev[prev.length - 1];
+      setCode(lastCode);
+      setHighlightLine(null);
+      toast.info("Reverted code to previous version");
+      return prev.slice(0, -1);
+    });
+  };
+
   const run = () => {
     if (isEmpty || busy) return;
     setHighlightLine(null);
@@ -179,6 +206,7 @@ function Index() {
                 setCode(s.code);
                 setResult(null);
                 setHighlightLine(null);
+                setCodeHistory([]);
               }}
               className="rounded-full border border-border bg-surface px-3 py-1 font-mono text-xs text-muted-foreground transition hover:border-neon/40 hover:text-neon"
             >
@@ -186,6 +214,39 @@ function Index() {
             </button>
           ))}
         </div>
+
+        {codeHistory.length > 0 ? (
+          <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-neon/30 bg-neon/10 px-3.5 py-2 font-mono text-xs animate-in fade-in duration-200">
+            <div className="flex items-center gap-2 text-neon">
+              <Sparkles className="size-3.5 shrink-0" />
+              <span className="font-semibold">
+                AI fix applied ({codeHistory.length}) · Code modified
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={handleUndo}
+                className="h-7 gap-1 px-2 font-mono text-[11px] text-muted-foreground hover:text-foreground"
+              >
+                <Undo2 className="size-3" />
+                Undo ({codeHistory.length})
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                onClick={run}
+                disabled={busy}
+                className="h-7 gap-1 px-2.5 font-mono text-[11px] bg-neon text-background hover:bg-neon/90 font-semibold"
+              >
+                <RefreshCw className="size-3" />
+                Re-Analyze Code
+              </Button>
+            </div>
+          </div>
+        ) : null}
 
         <CodeEditor
           value={code}
@@ -356,6 +417,7 @@ function Index() {
                     code={code}
                     onHoverLine={setHighlightLine}
                     onNavigateTab={setKind}
+                    onApplyFix={handleApplyFix}
                   />
                 ) : (
                   <div className="flex h-full min-h-[360px] flex-col items-center justify-center gap-3 text-center text-muted-foreground">
