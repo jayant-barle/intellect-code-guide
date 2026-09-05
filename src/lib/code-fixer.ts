@@ -9,6 +9,8 @@
  * - Core statement anchor matching
  */
 
+import type { ApiBug } from "@/lib/api-analysis";
+
 export type ApplyResult = {
   success: boolean;
   newCode: string;
@@ -307,4 +309,37 @@ export function applyBugFix(
     newCode: isCrlf ? resultStr.replace(/\n/g, "\r\n") : resultStr,
     message: `Added fix annotation above line ${lineNumber}.`,
   };
+}
+
+/**
+ * Intelligently applies a bug fix:
+ * 1. If bug has before and after, attempts precise in-place replacement via applyImprovement
+ * 2. If match fails or no before/after, falls back to code snippet insertion or comment annotation.
+ */
+export function applyBug(code: string, bug: ApiBug): ApplyResult {
+  if (bug.before && bug.after) {
+    const diffRes = applyImprovement(code, bug.before, bug.after, bug.line);
+    if (diffRes.success) {
+      return diffRes;
+    }
+  }
+
+  const snippet = bug.fix ? extractCodeFromFix(bug.fix) : null;
+  return applyBugFix(code, bug.line || 1, bug.fix || bug.cause, snippet ?? undefined);
+}
+
+/**
+ * Batch applies all applicable bug fixes to code.
+ */
+export function applyAllBugs(code: string, bugs: ApiBug[]): { newCode: string; count: number } {
+  let current = code;
+  let count = 0;
+  for (const bug of bugs) {
+    const res = applyBug(current, bug);
+    if (res.success) {
+      current = res.newCode;
+      count++;
+    }
+  }
+  return { newCode: current, count };
 }

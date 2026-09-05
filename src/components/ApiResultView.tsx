@@ -26,6 +26,8 @@ import { computeQualityScore } from "@/lib/quality-score";
 import {
   applyImprovement,
   applyBugFix,
+  applyBug,
+  applyAllBugs,
   extractCodeFromFix,
 } from "@/lib/code-fixer";
 
@@ -33,6 +35,15 @@ const severityStyles: Record<string, string> = {
   high: "border-destructive/40 bg-destructive/10 text-destructive",
   medium: "border-warn/40 bg-warn/10 text-warn",
   low: "border-border bg-surface-2 text-muted-foreground",
+};
+
+const categoryStyles: Record<string, string> = {
+  logic: "border-purple-500/40 bg-purple-500/10 text-purple-400",
+  runtime: "border-destructive/40 bg-destructive/10 text-destructive",
+  complexity: "border-blue-500/40 bg-blue-500/10 text-blue-400",
+  resource: "border-amber-500/40 bg-amber-500/10 text-amber-400",
+  security: "border-rose-500/40 bg-rose-500/10 text-rose-400",
+  syntax: "border-emerald-500/40 bg-emerald-500/10 text-emerald-400",
 };
 
 function SectionHint({ children }: { children: string }) {
@@ -333,17 +344,49 @@ export function ApiResultView({
         </div>
       );
     }
+
+    const fixableBugs = data.bugs.filter(
+      (b) => (b.before && b.after) || (b.fix && extractCodeFromFix(b.fix)),
+    );
+
+    const handleApplyAllBugs = () => {
+      if (!onApplyFix || !data.bugs.length) return;
+      const res = applyAllBugs(code, data.bugs);
+      if (res.count > 0) {
+        onApplyFix(res.newCode, `Batch applied ${res.count} bug fix${res.count > 1 ? "es" : ""}`);
+      } else {
+        toast.error("Could not automatically apply bug fixes to editor code.");
+      }
+    };
+
     const bugsText = data.bugs
       .map((bug) => {
-        const head = `${bug.title}${typeof bug.line === "number" ? ` (line ${bug.line})` : ""} [${bug.severity}]`;
+        const cat = bug.category ? ` [${bug.category}]` : "";
+        const head = `${bug.title}${typeof bug.line === "number" ? ` (line ${bug.line})` : ""} [${bug.severity}]${cat}`;
         return `${head}\nCause: ${bug.cause}${bug.fix ? `\nFix: ${bug.fix}` : ""}`;
       })
       .join("\n\n");
+
     return (
       <div className="flex flex-col gap-3">
-        <ExportBar title="detected issues">
-          <CopyButton text={bugsText} label="Bugs" />
-        </ExportBar>
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <SectionHint>detected issues</SectionHint>
+          <div className="flex items-center gap-2">
+            <CopyButton text={bugsText} label="Bugs" />
+            {onApplyFix && fixableBugs.length > 1 && (
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                onClick={handleApplyAllBugs}
+                className="h-8 gap-1.5 font-mono text-[11px] border-destructive/40 bg-destructive/10 text-destructive hover:bg-destructive/20"
+              >
+                <Sparkles className="size-3.5" />
+                Apply All Fixes ({fixableBugs.length})
+              </Button>
+            )}
+          </div>
+        </div>
         {data.bugs.map((bug, i) => (
           <Alert
             key={`${bug.title}-${i}`}
@@ -356,7 +399,7 @@ export function ApiResultView({
           >
             <Bug className="size-4" />
             <AlertTitle className="flex flex-wrap items-center gap-2">
-              <span className="min-w-0">{bug.title}</span>
+              <span className="min-w-0 font-medium">{bug.title}</span>
               <Badge
                 variant="outline"
                 className={`shrink-0 font-mono text-[10px] uppercase ${
@@ -365,11 +408,21 @@ export function ApiResultView({
               >
                 {bug.severity}
               </Badge>
+              {bug.category ? (
+                <Badge
+                  variant="outline"
+                  className={`shrink-0 font-mono text-[10px] uppercase ${
+                    categoryStyles[bug.category] ?? "border-border text-muted-foreground"
+                  }`}
+                >
+                  {bug.category}
+                </Badge>
+              ) : null}
               {typeof bug.line === "number" ? (
                 <span className="font-mono text-[11px] text-muted-foreground">line {bug.line}</span>
               ) : null}
             </AlertTitle>
-            <AlertDescription className="flex flex-col gap-1 text-muted-foreground">
+            <AlertDescription className="flex flex-col gap-2 text-muted-foreground">
               <span>{bug.cause}</span>
               {bug.fix ? (
                 <span className="text-foreground">
@@ -377,9 +430,55 @@ export function ApiResultView({
                   {bug.fix}
                 </span>
               ) : null}
-              {bug.fix && onApplyFix && typeof bug.line === "number" ? (
-                <div className="mt-2 flex flex-wrap items-center gap-2">
-                  {extractCodeFromFix(bug.fix) ? (
+
+              {/* Visual before / after code diff for bugs */}
+              {(bug.before || bug.after) && (
+                <div className="grid gap-2 pt-1 sm:grid-cols-2 font-mono text-xs">
+                  {bug.before ? (
+                    <div className="overflow-hidden rounded-md border border-destructive/25 bg-surface">
+                      <div className="flex items-center justify-between border-b border-destructive/20 bg-destructive/5 px-3 py-1.5 text-[10px]">
+                        <span className="font-semibold text-destructive flex items-center gap-1">
+                          <span>−</span> Buggy Code
+                        </span>
+                        <CopyButton text={bug.before} label="Buggy code" />
+                      </div>
+                      <pre className="scroll-slim overflow-x-auto p-3 text-muted-foreground leading-relaxed">
+                        <code>{bug.before}</code>
+                      </pre>
+                    </div>
+                  ) : null}
+                  {bug.after ? (
+                    <div className="overflow-hidden rounded-md border border-neon/30 bg-surface">
+                      <div className="flex items-center justify-between border-b border-neon/20 bg-neon/5 px-3 py-1.5 text-[10px]">
+                        <span className="font-semibold text-neon flex items-center gap-1">
+                          <span>+</span> Corrected Code
+                        </span>
+                        <CopyButton text={bug.after} label="Corrected code" />
+                      </div>
+                      <pre className="scroll-slim overflow-x-auto p-3 text-foreground leading-relaxed">
+                        <code>{bug.after}</code>
+                      </pre>
+                    </div>
+                  ) : null}
+                </div>
+              )}
+
+              {onApplyFix && (
+                <div className="mt-1 flex flex-wrap items-center gap-2">
+                  {bug.before && bug.after ? (
+                    <ApplyFixButton
+                      buttonText="Apply Code Fix"
+                      label={`Applied fix for: ${bug.title}`}
+                      onApply={() => {
+                        const res = applyBug(code, bug);
+                        if (res.success) {
+                          onApplyFix(res.newCode, `Applied fix for ${bug.title}`);
+                          return { success: true };
+                        }
+                        return { success: false, message: res.message };
+                      }}
+                    />
+                  ) : extractCodeFromFix(bug.fix || "") && typeof bug.line === "number" ? (
                     <ApplyFixButton
                       buttonText="Apply Code Patch"
                       label={`Applied code patch for line ${bug.line}`}
@@ -394,20 +493,23 @@ export function ApiResultView({
                       }}
                     />
                   ) : null}
-                  <ApplyFixButton
-                    buttonText="Insert Fix Comment"
-                    label={`Added fix comment above line ${bug.line}`}
-                    onApply={() => {
-                      const res = applyBugFix(code, bug.line!, bug.fix!);
-                      if (res.success) {
-                        onApplyFix(res.newCode, `Added fix comment above line ${bug.line}`);
-                        return { success: true };
-                      }
-                      return { success: false, message: res.message };
-                    }}
-                  />
+
+                  {bug.fix && typeof bug.line === "number" && !bug.before && (
+                    <ApplyFixButton
+                      buttonText="Insert Fix Comment"
+                      label={`Added fix comment above line ${bug.line}`}
+                      onApply={() => {
+                        const res = applyBugFix(code, bug.line!, bug.fix!);
+                        if (res.success) {
+                          onApplyFix(res.newCode, `Added fix comment above line ${bug.line}`);
+                          return { success: true };
+                        }
+                        return { success: false, message: res.message };
+                      }}
+                    />
+                  )}
                 </div>
-              ) : null}
+              )}
             </AlertDescription>
           </Alert>
         ))}

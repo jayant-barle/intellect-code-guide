@@ -7,12 +7,42 @@ export function buildAnalysisPrompt(pythonCode: string) {
   "explanation": [{ "line": number, "code": string, "explanation": string }],
   "mermaid_chart": string,            // starts with "flowchart TD", quoted labels, no fences
   "commented_code": string,           // same code with inline comments/docstrings, no fences
-  "bugs": [{ "title": string, "severity": "high"|"medium"|"low", "line": number, "cause": string, "fix": string }],
-  "improvements": [{ "title": string, "rationale": string, "before": string, "after": string }],
-  "complexity": { "time": string, "space": string, "verdict": string, "breakdown": [{ "name": string, "time": string, "space": string, "justification": string }] }
+  "bugs": [{
+    "title": string,
+    "severity": "high"|"medium"|"low",
+    "category": "logic"|"runtime"|"complexity"|"resource"|"security"|"syntax",
+    "line": number,
+    "cause": string,
+    "fix": string,
+    "before": string,                 // exact verbatim line/block from code to replace (or empty if insertion)
+    "after": string                   // exact drop-in replacement with matching indentation
+  }],
+  "improvements": [{
+    "title": string,
+    "rationale": string,
+    "before": string,                 // exact verbatim line/block from code to replace
+    "after": string                   // exact drop-in replacement with matching indentation
+  }],
+  "complexity": {
+    "time": string,
+    "space": string,
+    "verdict": string,
+    "breakdown": [{ "name": string, "time": string, "space": string, "justification": string }]
+  }
 }
 
-Never invent code that is not in the input. Return empty arrays when there is nothing to report.
+ANALYSIS GUIDELINES:
+1. Deep Algorithmic & Logic Bugs:
+   - Check recursion base cases, infinite loops, and stack overflow risks.
+   - Detect off-by-one errors (e.g. range bounds, two-pointer boundaries, binary search upper/lower bounds).
+   - Detect 2D list reference aliasing (e.g. [[0]*cols]*rows where mutating one row alters all).
+   - Detect mutating collections while iterating over them (e.g. removing/appending during for-loop).
+   - Detect unhandled division by zero, float precision equality checks (== on floats), and mutable default arguments.
+   - Detect unclosed file handles/sockets, bare except clauses, and shadowing of Python built-in names (sum, list, dict, id, etc.).
+2. Code Fixes (before & after):
+   - For every bug where a localized code patch is possible, provide exact "before" (verbatim text from input code) and "after" (drop-in replacement preserving Python indentation).
+   - For improvements, provide exact verbatim "before" and "after" snippets for clean 1-click refactoring.
+3. Output strict valid JSON only without markdown fences or extraneous explanations. Never invent code outside the input.
 
 \`\`\`python
 ${pythonCode}

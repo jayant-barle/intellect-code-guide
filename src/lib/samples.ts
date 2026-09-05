@@ -35,9 +35,53 @@ print(report([[1, 2, 3], []]))`,
     for i in range(len(data)):
         for j in range(len(data) - 1):
             if data[j] > data[j + 1]:
-                data[j], data[j + 1] = data[j + 1], data[j]
+                temp = data[j]
+                data[j] = data[j + 1]
+                data[j + 1] = temp
     return data
 
 print(bubble_sort([5, 3, 8, 1]))`,
+  },
+  {
+    label: "matrix_aliasing",
+    code: `def create_matrix(rows, cols):
+    # Shallow copy bug: all rows reference the same memory list
+    grid = [[0] * cols] * rows
+    grid[0][0] = 99
+    return grid
+
+matrix = create_matrix(3, 4)
+print(matrix)`,
+  },
+  {
+    label: "mutating_iteration",
+    code: `def filter_negatives(numbers=[]):
+    # Mutable default argument + mutating list while iterating
+    for n in numbers:
+        if n < 0:
+            numbers.remove(n)
+    return numbers
+
+print(filter_negatives([-1, -2, 3, -4, 5]))`,
+  },
+  {
+    label: "recursive_fibonacci",
+    code: `def fibonacci(n):
+    # Exponential O(2^N) complexity with incomplete base case
+    if n == 0:
+        return 0
+    return fibonacci(n - 1) + fibonacci(n - 2)
+
+print(fibonacci(5))`,
+  },
+  {
+    label: "resource_leak",
+    code: `def process_records(filepath):
+    # Resource leak without with-statement + shadows built-in 'sum'
+    f = open(filepath, "r")
+    sum = 0
+    for line in f:
+        sum += len(line)
+    return sum`,
   },
 ];
