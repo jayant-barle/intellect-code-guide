@@ -64,6 +64,7 @@ export type HistoryEntry = {
   created_at: string;
   last_used_at: string;
   hit_count: number;
+  result: AnalyzeResponse | null;
 };
 
 export const listAnalyses = createServerFn({ method: "GET" }).handler(
@@ -71,9 +72,9 @@ export const listAnalyses = createServerFn({ method: "GET" }).handler(
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data } = await supabaseAdmin
       .from("analyses")
-      .select("id, code, created_at, last_used_at, hit_count")
+      .select("id, code, created_at, last_used_at, hit_count, result")
       .order("last_used_at", { ascending: false })
-      .limit(25);
+      .limit(50);
     return (data ?? []) as HistoryEntry[];
   },
 );

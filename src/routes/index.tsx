@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import {
   AlertTriangle,
@@ -109,6 +109,20 @@ function Index() {
   const [highlightLine, setHighlightLine] = useState<number | null>(null);
   const [result, setResult] = useState<AnalyzeResponse | null>(null);
   const [cached, setCached] = useState(false);
+
+  useEffect(() => {
+    try {
+      const pendingCode = sessionStorage.getItem("pylens_load_code");
+      if (pendingCode) {
+        sessionStorage.removeItem("pylens_load_code");
+        setCode(pendingCode);
+        setResult(null);
+        setCached(false);
+      }
+    } catch {
+      // ignore
+    }
+  }, []);
 
   const runAnalysis = useServerFn(analyzeCode);
 

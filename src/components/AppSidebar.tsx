@@ -1,5 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { History, Home, Settings } from "lucide-react";
+import { GitCompare, History, Home, Settings } from "lucide-react";
 
 import {
   Sidebar,
@@ -16,6 +16,7 @@ import {
 
 const items = [
   { title: "Home", url: "/", icon: Home },
+  { title: "Review", url: "/review", icon: GitCompare },
   { title: "History", url: "/history", icon: History },
   { title: "Settings", url: "/settings", icon: Settings },
 ] as const;
