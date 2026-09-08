@@ -18,6 +18,7 @@ import {
   RefreshCw,
   ListTree,
   Sparkles,
+  Trash2,
   Undo2,
   Wand2,
 } from "lucide-react";
@@ -162,6 +163,12 @@ function Index() {
     setHighlightLine(null);
   };
 
+  const handleClear = () => {
+    updateCode("");
+    setCodeHistory([]);
+    mutation.reset();
+  };
+
   const handleApplyFix = (newCode: string, description?: string) => {
     setCodeHistory((prev) => [...prev, code]);
     setCode(newCode);
@@ -194,25 +201,38 @@ function Index() {
   return (
     <div className="mx-auto grid max-w-[1600px] gap-6 px-4 py-6 sm:px-6 lg:grid-cols-2">
       <section className="flex min-w-0 flex-col gap-4">
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
-            samples
-          </span>
-          {SAMPLES.map((s) => (
-            <button
-              key={s.label}
-              type="button"
-              onClick={() => {
-                setCode(s.code);
-                setResult(null);
-                setHighlightLine(null);
-                setCodeHistory([]);
-              }}
-              className="rounded-full border border-border bg-surface px-3 py-1 font-mono text-xs text-muted-foreground transition hover:border-neon/40 hover:text-neon"
-            >
-              {s.label}
-            </button>
-          ))}
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+              samples
+            </span>
+            {SAMPLES.map((s) => (
+              <button
+                key={s.label}
+                type="button"
+                onClick={() => {
+                  setCode(s.code);
+                  setResult(null);
+                  setHighlightLine(null);
+                  setCodeHistory([]);
+                }}
+                className="rounded-full border border-border bg-surface px-3 py-1 font-mono text-xs text-muted-foreground transition hover:border-neon/40 hover:text-neon"
+              >
+                {s.label}
+              </button>
+            ))}
+          </div>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={handleClear}
+            disabled={isEmpty || busy}
+            className="gap-1.5 font-mono text-xs"
+          >
+            <Trash2 className="size-3.5" />
+            Clear code
+          </Button>
         </div>
 
         {codeHistory.length > 0 ? (
