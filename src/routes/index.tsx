@@ -32,7 +32,6 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import type { AnalysisKind } from "@/lib/analysis-types";
 import type { AnalyzeResponse } from "@/lib/api-analysis";
 import { analyzeCode } from "@/lib/analyze.functions";
-import { SAMPLES } from "@/lib/samples";
 import { buildAnnotations } from "@/lib/annotations";
 import { computeQualityScore } from "@/lib/quality-score";
 
@@ -107,7 +106,7 @@ function ErrorCopyButton({ text }: { text: string }) {
 }
 
 function Index() {
-  const [code, setCode] = useState(SAMPLES[0].code);
+  const [code, setCode] = useState("");
   const [kind, setKind] = useState<AnalysisKind>("explain");
   const [highlightLine, setHighlightLine] = useState<number | null>(null);
   const [result, setResult] = useState<AnalyzeResponse | null>(null);
@@ -201,27 +200,7 @@ function Index() {
   return (
     <div className="mx-auto grid max-w-[1600px] gap-6 px-4 py-6 sm:px-6 lg:grid-cols-2">
       <section className="flex min-w-0 flex-col gap-4">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
-              samples
-            </span>
-            {SAMPLES.map((s) => (
-              <button
-                key={s.label}
-                type="button"
-                onClick={() => {
-                  setCode(s.code);
-                  setResult(null);
-                  setHighlightLine(null);
-                  setCodeHistory([]);
-                }}
-                className="rounded-full border border-border bg-surface px-3 py-1 font-mono text-xs text-muted-foreground transition hover:border-neon/40 hover:text-neon"
-              >
-                {s.label}
-              </button>
-            ))}
-          </div>
+        <div className="flex justify-end">
           <Button
             type="button"
             variant="outline"
