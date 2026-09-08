@@ -8,6 +8,7 @@ import {
   Award,
   Bug,
   Check,
+  Code2,
   ChevronRight,
   Copy,
   Gauge,
@@ -113,6 +114,7 @@ function Index() {
   const [result, setResult] = useState<AnalyzeResponse | null>(null);
   const [cached, setCached] = useState(false);
   const [codeHistory, setCodeHistory] = useState<string[]>([]);
+  const [showSamples, setShowSamples] = useState(false);
 
   useEffect(() => {
     try {
@@ -203,24 +205,35 @@ function Index() {
       <section className="flex min-w-0 flex-col gap-4">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
-              samples
-            </span>
-            {SAMPLES.map((s) => (
-              <button
-                key={s.label}
-                type="button"
-                onClick={() => {
-                  setCode(s.code);
-                  setResult(null);
-                  setHighlightLine(null);
-                  setCodeHistory([]);
-                }}
-                className="rounded-full border border-border bg-surface px-3 py-1 font-mono text-xs text-muted-foreground transition hover:border-neon/40 hover:text-neon"
-              >
-                {s.label}
-              </button>
-            ))}
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setShowSamples((visible) => !visible)}
+              aria-expanded={showSamples}
+              className="gap-1.5 font-mono text-xs"
+            >
+              <Code2 className="size-3.5" />
+              Samples
+            </Button>
+            {showSamples
+              ? SAMPLES.map((s) => (
+                  <button
+                    key={s.label}
+                    type="button"
+                    onClick={() => {
+                      setCode(s.code);
+                      setResult(null);
+                      setHighlightLine(null);
+                      setCodeHistory([]);
+                      setShowSamples(false);
+                    }}
+                    className="rounded-full border border-border bg-surface px-3 py-1 font-mono text-xs text-muted-foreground transition hover:border-neon/40 hover:text-neon"
+                  >
+                    {s.label}
+                  </button>
+                ))
+              : null}
           </div>
           <Button
             type="button"
