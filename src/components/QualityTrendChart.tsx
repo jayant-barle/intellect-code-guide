@@ -133,17 +133,13 @@ export function QualityTrendChart({ data }: { data: TrendEntry[] }) {
 
     // Sort chronologically (oldest to newest)
     const sorted = [...data].sort(
-      (a, b) =>
-        new Date(a.entry.created_at).getTime() -
-        new Date(b.entry.created_at).getTime(),
+      (a, b) => new Date(a.entry.created_at).getTime() - new Date(b.entry.created_at).getTime(),
     );
 
     return sorted.map((item): ChartDataPoint => {
       const d = new Date(item.entry.created_at);
       const bugsCount =
-        item.entry.result &&
-        typeof item.entry.result === "object" &&
-        "bugs" in item.entry.result
+        item.entry.result && typeof item.entry.result === "object" && "bugs" in item.entry.result
           ? (item.entry.result as { bugs: unknown[] }).bugs.length
           : 0;
 
@@ -211,7 +207,10 @@ export function QualityTrendChart({ data }: { data: TrendEntry[] }) {
               Quality Trend Baseline
             </span>
           </div>
-          <Badge variant="outline" className="border-neon/30 bg-neon/10 text-neon font-mono text-[10px]">
+          <Badge
+            variant="outline"
+            className="border-neon/30 bg-neon/10 text-neon font-mono text-[10px]"
+          >
             1 Analysis Logged
           </Badge>
         </div>
@@ -231,7 +230,8 @@ export function QualityTrendChart({ data }: { data: TrendEntry[] }) {
               Run another analysis to unlock trend trajectory
             </p>
             <p className="text-xs text-muted-foreground mt-1">
-              Your second analysis will activate interactive graphs for score momentum, bug reductions, and Big-O tracking.
+              Your second analysis will activate interactive graphs for score momentum, bug
+              reductions, and Big-O tracking.
             </p>
           </div>
         </div>
@@ -364,9 +364,7 @@ export function QualityTrendChart({ data }: { data: TrendEntry[] }) {
         <div className="flex flex-wrap items-center gap-2 font-mono text-[11px]">
           <button
             type="button"
-            onClick={() =>
-              setVisibleMetrics((prev) => ({ ...prev, score: !prev.score }))
-            }
+            onClick={() => setVisibleMetrics((prev) => ({ ...prev, score: !prev.score }))}
             className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full border transition-all ${
               visibleMetrics.score
                 ? "border-neon/40 bg-neon/15 text-neon font-semibold"
@@ -379,9 +377,7 @@ export function QualityTrendChart({ data }: { data: TrendEntry[] }) {
 
           <button
             type="button"
-            onClick={() =>
-              setVisibleMetrics((prev) => ({ ...prev, bugs: !prev.bugs }))
-            }
+            onClick={() => setVisibleMetrics((prev) => ({ ...prev, bugs: !prev.bugs }))}
             className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full border transition-all ${
               visibleMetrics.bugs
                 ? "border-destructive/40 bg-destructive/15 text-destructive font-semibold"
@@ -436,70 +432,27 @@ export function QualityTrendChart({ data }: { data: TrendEntry[] }) {
 
       {/* Main Area Chart */}
       <ResponsiveContainer width="100%" height={230}>
-        <AreaChart
-          data={chartData}
-          margin={{ top: 10, right: 12, bottom: 0, left: -20 }}
-        >
+        <AreaChart data={chartData} margin={{ top: 10, right: 12, bottom: 0, left: -20 }}>
           <defs>
             <linearGradient id="scoreGradient" x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%" stopColor="hsl(var(--neon))" stopOpacity={0.35} />
               <stop offset="100%" stopColor="hsl(var(--neon))" stopOpacity={0.02} />
             </linearGradient>
             <linearGradient id="bugGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop
-                offset="0%"
-                stopColor="hsl(var(--destructive))"
-                stopOpacity={0.25}
-              />
-              <stop
-                offset="100%"
-                stopColor="hsl(var(--destructive))"
-                stopOpacity={0.02}
-              />
+              <stop offset="0%" stopColor="hsl(var(--destructive))" stopOpacity={0.25} />
+              <stop offset="100%" stopColor="hsl(var(--destructive))" stopOpacity={0.02} />
             </linearGradient>
-            <linearGradient
-              id="complexityGradient"
-              x1="0"
-              y1="0"
-              x2="0"
-              y2="1"
-            >
-              <stop
-                offset="0%"
-                stopColor="hsl(210,90%,60%)"
-                stopOpacity={0.2}
-              />
-              <stop
-                offset="100%"
-                stopColor="hsl(210,90%,60%)"
-                stopOpacity={0.01}
-              />
+            <linearGradient id="complexityGradient" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="hsl(210,90%,60%)" stopOpacity={0.2} />
+              <stop offset="100%" stopColor="hsl(210,90%,60%)" stopOpacity={0.01} />
             </linearGradient>
-            <linearGradient
-              id="readabilityGradient"
-              x1="0"
-              y1="0"
-              x2="0"
-              y2="1"
-            >
-              <stop
-                offset="0%"
-                stopColor="hsl(280,80%,65%)"
-                stopOpacity={0.2}
-              />
-              <stop
-                offset="100%"
-                stopColor="hsl(280,80%,65%)"
-                stopOpacity={0.01}
-              />
+            <linearGradient id="readabilityGradient" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="hsl(280,80%,65%)" stopOpacity={0.2} />
+              <stop offset="100%" stopColor="hsl(280,80%,65%)" stopOpacity={0.01} />
             </linearGradient>
           </defs>
 
-          <CartesianGrid
-            strokeDasharray="3 6"
-            stroke="hsl(var(--border))"
-            vertical={false}
-          />
+          <CartesianGrid strokeDasharray="3 6" stroke="hsl(var(--border))" vertical={false} />
 
           <XAxis
             dataKey="date"

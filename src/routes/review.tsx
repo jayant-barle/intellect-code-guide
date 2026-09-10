@@ -297,9 +297,7 @@ function ReviewPage() {
       ) : null}
 
       {/* Quality Trend Chart */}
-      {entriesWithReports.length > 0 ? (
-        <QualityTrendChart data={entriesWithReports} />
-      ) : null}
+      {entriesWithReports.length > 0 ? <QualityTrendChart data={entriesWithReports} /> : null}
 
       {/* Search & Filter Toolbar */}
       <div className="flex flex-col gap-3 rounded-xl border border-border bg-surface p-4 sm:flex-row sm:items-center sm:justify-between">

@@ -36,10 +36,7 @@ export function cleanSnippet(str: string): string {
 
   // Strip line number prefixes like "1: ", "1. ", "Line 1: " if uniformly present
   const lines = s.split("\n");
-  if (
-    lines.length > 0 &&
-    lines.every((l) => !l.trim() || /^\s*(?:line\s*)?\d+[:.]\s*/i.test(l))
-  ) {
+  if (lines.length > 0 && lines.every((l) => !l.trim() || /^\s*(?:line\s*)?\d+[:.]\s*/i.test(l))) {
     s = lines.map((l) => l.replace(/^\s*(?:line\s*)?\d+[:.]\s*/i, "")).join("\n");
   }
 
@@ -54,7 +51,7 @@ export function normalizeTokens(str: string): string {
     .replace(/\r\n/g, "\n")
     .replace(/["']/g, "'")
     .replace(/[ \t]+/g, " ")
-    .replace(/\s*([=+\-*/(),:\[\]{}])\s*/g, "$1")
+    .replace(/\s*([=+\-*/(),:[\]{}])\s*/g, "$1")
     .trim();
 }
 
@@ -131,10 +128,7 @@ export function applyImprovement(
     let match = true;
 
     for (let bIdx = 0; bIdx < beforeCore.length; bIdx++) {
-      while (
-        i + codeOffset < codeLines.length &&
-        codeLines[i + codeOffset].trim().length === 0
-      ) {
+      while (i + codeOffset < codeLines.length && codeLines[i + codeOffset].trim().length === 0) {
         codeOffset++;
       }
 
@@ -162,10 +156,7 @@ export function applyImprovement(
     let match = true;
 
     for (let bIdx = 0; bIdx < beforeCore.length; bIdx++) {
-      while (
-        i + codeOffset < codeLines.length &&
-        codeLines[i + codeOffset].trim().length === 0
-      ) {
+      while (i + codeOffset < codeLines.length && codeLines[i + codeOffset].trim().length === 0) {
         codeOffset++;
       }
 

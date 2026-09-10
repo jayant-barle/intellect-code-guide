@@ -310,7 +310,10 @@ export function analyzePythonLocally(code: string): AnalyzeResponse {
         }
         inFunc = false;
       } else {
-        if (trimmed.startsWith("if ") && (trimmed.includes("return") || trimmed.includes("==") || trimmed.includes("<="))) {
+        if (
+          trimmed.startsWith("if ") &&
+          (trimmed.includes("return") || trimmed.includes("==") || trimmed.includes("<="))
+        ) {
           hasBaseCase = true;
         }
         if (new RegExp(`\\b${currentFn}\\s*\\(`).test(trimmed)) {
@@ -369,7 +372,8 @@ export function analyzePythonLocally(code: string): AnalyzeResponse {
         severity: "medium",
         category: "runtime",
         line: idx + 1,
-        cause: "A bare 'except:' catches KeyboardInterrupt, SystemExit, and memory errors, preventing clean program shutdown and masking syntax bugs.",
+        cause:
+          "A bare 'except:' catches KeyboardInterrupt, SystemExit, and memory errors, preventing clean program shutdown and masking syntax bugs.",
         fix: "Catch 'Exception' explicitly: except Exception:",
         before: l,
         after: `${indent}except Exception:`,
@@ -399,7 +403,20 @@ export function analyzePythonLocally(code: string): AnalyzeResponse {
   });
 
   // Bug rule 9: Shadowing Python built-in names
-  const builtins = ["sum", "list", "dict", "set", "id", "type", "min", "max", "filter", "map", "str", "int"];
+  const builtins = [
+    "sum",
+    "list",
+    "dict",
+    "set",
+    "id",
+    "type",
+    "min",
+    "max",
+    "filter",
+    "map",
+    "str",
+    "int",
+  ];
   lines.forEach((l, idx) => {
     const trimmed = l.trim();
     for (const b of builtins) {
@@ -434,7 +451,8 @@ export function analyzePythonLocally(code: string): AnalyzeResponse {
         severity: "medium",
         category: "logic",
         line: idx + 1,
-        cause: "Binary floating-point arithmetic introduces representation rounding errors (e.g. 0.1 + 0.2 != 0.3). Direct == equality is prone to unpredictable failures.",
+        cause:
+          "Binary floating-point arithmetic introduces representation rounding errors (e.g. 0.1 + 0.2 != 0.3). Direct == equality is prone to unpredictable failures.",
         fix: "Use math.isclose(a, b, rel_tol=1e-9)",
         before: l,
         after: `${indent}# Consider math.isclose() for float equality\n${l}`,
@@ -455,7 +473,8 @@ export function analyzePythonLocally(code: string): AnalyzeResponse {
         severity: "low",
         category: "syntax",
         line: idx + 1,
-        cause: "Testing equality directly against True/False is unidiomatic and slower than testing truth value directly.",
+        cause:
+          "Testing equality directly against True/False is unidiomatic and slower than testing truth value directly.",
         fix: "Use 'if var:' or 'if not var:'",
         before: l,
         after: `${indent}${fixed}`,
@@ -478,7 +497,8 @@ export function analyzePythonLocally(code: string): AnalyzeResponse {
         severity: "medium",
         category: "runtime",
         line: idx + 1,
-        cause: "'is' checks memory reference identity rather than value equality. Python only caches small integers and short strings, causing non-deterministic failures.",
+        cause:
+          "'is' checks memory reference identity rather than value equality. Python only caches small integers and short strings, causing non-deterministic failures.",
         fix: "Replace 'is' with value equality '=='",
         before: l,
         after: `${indent}${fixed}`,
@@ -489,12 +509,21 @@ export function analyzePythonLocally(code: string): AnalyzeResponse {
   // Bug rule 13: Unreachable code after return / raise
   lines.forEach((l, idx) => {
     const trimmed = l.trim();
-    if ((trimmed.startsWith("return ") || trimmed === "return" || trimmed.startsWith("raise ")) && idx < lines.length - 1) {
+    if (
+      (trimmed.startsWith("return ") || trimmed === "return" || trimmed.startsWith("raise ")) &&
+      idx < lines.length - 1
+    ) {
       const nextLine = lines[idx + 1];
       const nextTrimmed = nextLine.trim();
       const currentIndent = l.match(/^(\s*)/)?.[1].length ?? 0;
       const nextIndent = nextLine.match(/^(\s*)/)?.[1].length ?? 0;
-      if (nextTrimmed.length > 0 && !nextTrimmed.startsWith("#") && nextIndent === currentIndent && !nextTrimmed.startsWith("def ") && !nextTrimmed.startsWith("class ")) {
+      if (
+        nextTrimmed.length > 0 &&
+        !nextTrimmed.startsWith("#") &&
+        nextIndent === currentIndent &&
+        !nextTrimmed.startsWith("def ") &&
+        !nextTrimmed.startsWith("class ")
+      ) {
         bugs.push({
           title: "Unreachable statement detected after return/raise",
           severity: "low",
@@ -520,7 +549,11 @@ export function analyzePythonLocally(code: string): AnalyzeResponse {
         const bodyTrimmed = bodyLine.trim();
         const bodyIndent = bodyLine.match(/^(\s*)/)?.[1].length ?? 0;
         if (bodyTrimmed.length > 0 && bodyIndent <= whileIndent) break;
-        if (bodyTrimmed.startsWith("break") || bodyTrimmed.startsWith("return") || bodyTrimmed.startsWith("raise")) {
+        if (
+          bodyTrimmed.startsWith("break") ||
+          bodyTrimmed.startsWith("return") ||
+          bodyTrimmed.startsWith("raise")
+        ) {
           hasExit = true;
           break;
         }
@@ -531,7 +564,8 @@ export function analyzePythonLocally(code: string): AnalyzeResponse {
           severity: "high",
           category: "runtime",
           line: idx + 1,
-          cause: "Loop 'while True:' contains no break, return, or exception raise, freezing application execution.",
+          cause:
+            "Loop 'while True:' contains no break, return, or exception raise, freezing application execution.",
           fix: "Add termination condition or break inside while loop.",
           before: l,
           after: `${l}\n        # Add exit condition\n        break`,
@@ -713,12 +747,11 @@ export function analyzePythonLocally(code: string): AnalyzeResponse {
     verdict = "Linear time complexity proportional to the size of the input collection.";
   }
 
-  const spaceComplexity =
-    isDoubleRecursion
+  const spaceComplexity = isDoubleRecursion
+    ? "O(N)"
+    : code.includes("list(") || code.includes("[]") || code.includes("{}") || code.includes("set(")
       ? "O(N)"
-      : code.includes("list(") || code.includes("[]") || code.includes("{}") || code.includes("set(")
-        ? "O(N)"
-        : "O(1)";
+      : "O(1)";
 
   return {
     explanation,

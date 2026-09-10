@@ -1,12 +1,6 @@
 export type ApiExplanationRow = { line: number; code?: string; explanation: string };
 
-export type BugCategory =
-  | "logic"
-  | "runtime"
-  | "complexity"
-  | "resource"
-  | "security"
-  | "syntax";
+export type BugCategory = "logic" | "runtime" | "complexity" | "resource" | "security" | "syntax";
 
 export type ApiBug = {
   title: string;
