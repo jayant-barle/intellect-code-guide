@@ -1,8 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Check, Code2, Moon, SlidersHorizontal, Sparkles } from "lucide-react";
+import { Check, Code2, Moon, SlidersHorizontal, Sparkles, Sun } from "lucide-react";
+import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { Switch } from "@/components/ui/switch";
+import { applyTheme, getStoredTheme, saveTheme, type AppTheme } from "@/lib/theme";
 
 export const Route = createFileRoute("/settings")({
   head: () => ({
@@ -25,6 +28,21 @@ export const Route = createFileRoute("/settings")({
 });
 
 function SettingsPage() {
+  const [theme, setTheme] = useState<AppTheme>("dark");
+
+  useEffect(() => {
+    const storedTheme = getStoredTheme();
+    setTheme(storedTheme);
+    applyTheme(storedTheme);
+  }, []);
+
+  const handleThemeChange = (nextTheme: AppTheme) => {
+    setTheme(nextTheme);
+    saveTheme(nextTheme);
+  };
+
+  const isDark = theme === "dark";
+
   return (
     <div className="min-h-[calc(100vh-3rem)] bg-background">
       <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:py-12">
@@ -42,8 +60,8 @@ function SettingsPage() {
             </p>
           </div>
           <div className="flex w-fit items-center gap-2 rounded-md border border-neon/25 bg-neon/10 px-3 py-2 font-mono text-[11px] text-neon">
-            <Moon className="size-3.5" />
-            Dark workspace active
+            {isDark ? <Moon className="size-3.5" /> : <Sun className="size-3.5" />}
+            {isDark ? "Dark workspace active" : "Light workspace active"}
           </div>
         </div>
 
@@ -51,28 +69,36 @@ function SettingsPage() {
           <section className="p-5 sm:p-6">
             <div className="flex items-start gap-3">
               <div className="grid size-9 shrink-0 place-items-center rounded-md border border-neon/25 bg-neon/10 text-neon">
-                <Moon className="size-4" />
+                {isDark ? <Moon className="size-4" /> : <Sun className="size-4" />}
               </div>
               <div>
                 <h2 className="font-mono text-sm font-semibold text-foreground">Appearance</h2>
                 <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                  A low-glare canvas with neon accents keeps your code in focus.
+                  Choose the canvas that feels best for your code review sessions.
                 </p>
               </div>
             </div>
             <div className="mt-6 flex items-center justify-between gap-4 rounded-md border border-neon/20 bg-background/60 px-4 py-3">
               <div className="flex items-center gap-3">
                 <div className="grid size-8 place-items-center rounded border border-border bg-surface-2 text-neon">
-                  <Check className="size-4" />
+                  {isDark ? <Moon className="size-4" /> : <Sun className="size-4" />}
                 </div>
                 <div>
-                  <p className="font-mono text-xs font-medium text-foreground">Dark mode</p>
-                  <p className="mt-1 text-xs text-muted-foreground">Enabled for this workspace</p>
+                  <p className="font-mono text-xs font-medium text-foreground">{isDark ? "Dark mode" : "Light mode"}</p>
+                  <p className="mt-1 text-xs text-muted-foreground">{isDark ? "Dim surfaces and neon accents" : "Bright surfaces and clear contrast"}</p>
                 </div>
               </div>
-              <span className="rounded border border-neon/30 bg-neon/10 px-2 py-1 font-mono text-[10px] uppercase tracking-wider text-neon">
-                On
-              </span>
+              <div className="flex items-center gap-3">
+                <span className="hidden font-mono text-[10px] uppercase tracking-wider text-muted-foreground sm:inline">
+                  {isDark ? "Dark" : "Light"}
+                </span>
+                <Switch
+                  id="theme-toggle"
+                  checked={isDark}
+                  onCheckedChange={(checked) => handleThemeChange(checked ? "dark" : "light")}
+                  aria-label="Toggle light and dark theme"
+                />
+              </div>
             </div>
           </section>
 
