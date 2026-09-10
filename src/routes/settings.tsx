@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Check, Code2, Moon, SlidersHorizontal, Sparkles, Sun } from "lucide-react";
+import { Code2, Moon, SlidersHorizontal, Sparkles, Sun } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
