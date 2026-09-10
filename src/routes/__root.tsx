@@ -8,6 +8,7 @@ import {
   Scripts,
 } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
+import { useState } from "react";
 
 import appCss from "../styles.css?url";
 import { AppSidebar } from "@/components/AppSidebar";
@@ -15,6 +16,7 @@ import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { Toaster } from "@/components/ui/sonner";
 
 import { reportLovableError } from "../lib/lovable-error-reporting";
+import { applyTheme, getStoredTheme, type AppTheme } from "@/lib/theme";
 
 function NotFoundComponent() {
   return (
@@ -126,11 +128,28 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const [theme, setTheme] = useState<AppTheme>("dark");
+
+  useEffect(() => {
+    const storedTheme = getStoredTheme();
+    setTheme(storedTheme);
+    applyTheme(storedTheme);
+
+    const handleThemeChange = (event: Event) => {
+      const nextTheme = (event as CustomEvent<AppTheme>).detail;
+      if (nextTheme !== "light" && nextTheme !== "dark") return;
+      setTheme(nextTheme);
+      applyTheme(nextTheme);
+    };
+
+    window.addEventListener("pylens-theme-change", handleThemeChange);
+    return () => window.removeEventListener("pylens-theme-change", handleThemeChange);
+  }, []);
 
   return (
     <QueryClientProvider client={queryClient}>
       <SidebarProvider>
-        <div className="flex min-h-screen w-full bg-background">
+        <div data-theme={theme} className="flex min-h-screen w-full bg-background">
           <AppSidebar />
           <div className="flex min-w-0 flex-1 flex-col">
             <header className="sticky top-0 z-20 flex h-12 items-center gap-2 border-b border-border bg-background/85 px-3 backdrop-blur">

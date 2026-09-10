@@ -2,26 +2,26 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import {
   Activity,
+  Code2,
   Cpu,
   Database,
-  ExternalLink,
   Flame,
-  Info,
-  Layers,
+  Moon,
   Play,
-  RefreshCw,
   Server,
-  Settings,
-  ShieldCheck,
   Sliders,
+  SlidersHorizontal,
   Sparkles,
-  Terminal,
+  Sun,
 } from "lucide-react";
 
 import { SettingsStatusView } from "@/components/SettingsStatusView";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import { Switch } from "@/components/ui/switch";
+import { applyTheme, getStoredTheme, saveTheme, type AppTheme } from "@/lib/theme";
 
 export const Route = createFileRoute("/settings")({
   head: () => ({
@@ -47,13 +47,20 @@ export const Route = createFileRoute("/settings")({
 
 function SettingsPage() {
   const [activeTab, setActiveTab] = useState<"status" | "preferences">("status");
-  const [hasApiKey, setHasApiKey] = useState<boolean | null>(null);
+  const [theme, setTheme] = useState<AppTheme>("dark");
 
   useEffect(() => {
-    // Quick probe to check if cloud AI or local engine is active
-    // Local analyzer is default fallback when no key is present in env
-    setHasApiKey(true);
+    const storedTheme = getStoredTheme();
+    setTheme(storedTheme);
+    applyTheme(storedTheme);
   }, []);
+
+  const handleThemeChange = (nextTheme: AppTheme) => {
+    setTheme(nextTheme);
+    saveTheme(nextTheme);
+  };
+
+  const isDark = theme === "dark";
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 space-y-8">
@@ -78,8 +85,21 @@ function SettingsPage() {
           </p>
         </div>
 
-        {/* Header Action Buttons */}
-        <div className="flex items-center gap-2">
+        {/* Header Actions */}
+        <div className="flex flex-wrap items-center gap-2">
+          {/* Quick Theme Toggle Pill */}
+          <div className="flex items-center gap-2 rounded-md border border-neon/25 bg-neon/10 px-3 py-1.5 font-mono text-[11px] text-neon">
+            {isDark ? <Moon className="size-3.5" /> : <Sun className="size-3.5" />}
+            <span className="hidden sm:inline">{isDark ? "Dark" : "Light"}</span>
+            <Switch
+              id="header-theme-toggle"
+              checked={isDark}
+              onCheckedChange={(checked) => handleThemeChange(checked ? "dark" : "light")}
+              aria-label="Toggle light and dark theme"
+              className="scale-75"
+            />
+          </div>
+
           <Button
             asChild
             variant="outline"
@@ -91,6 +111,7 @@ function SettingsPage() {
               <span>Review Analytics</span>
             </Link>
           </Button>
+
           <Button
             asChild
             size="sm"
@@ -123,7 +144,7 @@ function SettingsPage() {
             className="gap-2 font-mono text-xs data-[state=active]:bg-background data-[state=active]:text-foreground"
           >
             <Sliders className="size-3.5" />
-            <span>Analyzer Preferences</span>
+            <span>Workspace & Preferences</span>
           </TabsTrigger>
         </TabsList>
 
@@ -132,64 +153,128 @@ function SettingsPage() {
           <SettingsStatusView />
         </TabsContent>
 
-        {/* Tab 2: Analyzer Preferences */}
+        {/* Tab 2: Preferences */}
         <TabsContent value="preferences" className="outline-none space-y-6">
-          <div className="rounded-xl border border-border bg-surface p-6 space-y-6">
-            <div>
-              <h2 className="font-mono text-base font-semibold text-foreground flex items-center gap-2">
-                <Cpu className="size-4 text-neon" />
-                Analysis Engine & Pipeline
-              </h2>
-              <p className="mt-1 text-xs text-muted-foreground">
-                PyLens operates a hybrid dual-engine pipeline combining cloud LLM intelligence with
-                deterministic local Python AST analysis.
-              </p>
-            </div>
-
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="rounded-lg border border-border/80 bg-background/50 p-4 space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="font-mono text-xs font-semibold text-foreground">
-                    Cloud AI Gateway
-                  </span>
-                  <Badge
-                    variant="outline"
-                    className="border-neon/40 bg-neon/10 font-mono text-[10px] text-neon"
-                  >
-                    Enabled
-                  </Badge>
+          <div className="overflow-hidden rounded-lg border border-border bg-surface shadow-[0_18px_50px_-32px_color-mix(in_oklab,var(--neon)_35%,transparent)]">
+            {/* Appearance Section */}
+            <section className="p-5 sm:p-6">
+              <div className="flex items-start gap-3">
+                <div className="grid size-9 shrink-0 place-items-center rounded-md border border-neon/25 bg-neon/10 text-neon">
+                  {isDark ? <Moon className="size-4" /> : <Sun className="size-4" />}
                 </div>
-                <p className="text-xs text-muted-foreground leading-relaxed">
-                  Deep code reasoning powered by Lovable AI Gateway, OpenAI, or Gemini for Mermaid
-                  flowchart diagrams, algorithmic logic bug detection, and line-by-line tutorials.
-                </p>
+                <div>
+                  <h2 className="font-mono text-sm font-semibold text-foreground">Appearance</h2>
+                  <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                    Choose the canvas that feels best for your code review sessions.
+                  </p>
+                </div>
+              </div>
+              <div className="mt-6 flex items-center justify-between gap-4 rounded-md border border-neon/20 bg-background/60 px-4 py-3">
+                <div className="flex items-center gap-3">
+                  <div className="grid size-8 place-items-center rounded border border-border bg-surface-2 text-neon">
+                    {isDark ? <Moon className="size-4" /> : <Sun className="size-4" />}
+                  </div>
+                  <div>
+                    <p className="font-mono text-xs font-medium text-foreground">
+                      {isDark ? "Dark mode" : "Light mode"}
+                    </p>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      {isDark
+                        ? "Dim surfaces and neon accents"
+                        : "Bright surfaces and clear contrast"}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="hidden font-mono text-[10px] uppercase tracking-wider text-muted-foreground sm:inline">
+                    {isDark ? "Dark" : "Light"}
+                  </span>
+                  <Switch
+                    id="theme-toggle"
+                    checked={isDark}
+                    onCheckedChange={(checked) => handleThemeChange(checked ? "dark" : "light")}
+                    aria-label="Toggle light and dark theme"
+                  />
+                </div>
+              </div>
+            </section>
+
+            <Separator />
+
+            {/* Analysis Engine Section */}
+            <section className="p-5 sm:p-6 space-y-4">
+              <div className="flex items-start gap-3">
+                <div className="grid size-9 shrink-0 place-items-center rounded-md border border-neon/25 bg-neon/10 text-neon">
+                  <Cpu className="size-4" />
+                </div>
+                <div>
+                  <h2 className="font-mono text-sm font-semibold text-foreground">
+                    Analysis Engine & Pipeline
+                  </h2>
+                  <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                    PyLens operates a hybrid dual-engine pipeline combining cloud LLM intelligence
+                    with deterministic local Python AST analysis.
+                  </p>
+                </div>
               </div>
 
-              <div className="rounded-lg border border-border/80 bg-background/50 p-4 space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="font-mono text-xs font-semibold text-foreground">
-                    Deterministic AST Fallback
-                  </span>
-                  <Badge
-                    variant="outline"
-                    className="border-border bg-surface font-mono text-[10px] text-muted-foreground"
-                  >
-                    Automatic Fallback
-                  </Badge>
+              <div className="grid gap-4 sm:grid-cols-2 mt-4">
+                <div className="rounded-lg border border-border/80 bg-background/50 p-4 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="font-mono text-xs font-semibold text-foreground">
+                      Cloud AI Gateway
+                    </span>
+                    <Badge
+                      variant="outline"
+                      className="border-neon/40 bg-neon/10 font-mono text-[10px] text-neon"
+                    >
+                      Enabled
+                    </Badge>
+                  </div>
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    Deep code reasoning powered by Lovable AI Gateway, OpenAI, or Gemini for Mermaid
+                    flowcharts, algorithmic bug detection, and line-by-line tutorials.
+                  </p>
                 </div>
-                <p className="text-xs text-muted-foreground leading-relaxed">
-                  Fast, zero-network rule-based analyzer detecting 2D list aliasing, recursion stack
-                  depth, mutable defaults, and Big-O asymptotic complexity.
-                </p>
-              </div>
-            </div>
 
-            <div className="border-t border-border pt-6 space-y-3">
-              <h3 className="font-mono text-sm font-semibold text-foreground flex items-center gap-2">
-                <Server className="size-3.5 text-muted-foreground" />
-                Cache Invalidation & Staleness Guidelines
-              </h3>
-              <div className="space-y-2 text-xs text-muted-foreground leading-relaxed">
+                <div className="rounded-lg border border-border/80 bg-background/50 p-4 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="font-mono text-xs font-semibold text-foreground">
+                      Deterministic AST Fallback
+                    </span>
+                    <Badge
+                      variant="outline"
+                      className="border-border bg-surface font-mono text-[10px] text-muted-foreground"
+                    >
+                      Automatic Fallback
+                    </Badge>
+                  </div>
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    Fast, zero-network rule-based analyzer detecting 2D list aliasing, recursion
+                    stack depth, mutable defaults, and Big-O complexity.
+                  </p>
+                </div>
+              </div>
+            </section>
+
+            <Separator />
+
+            {/* Cache Invalidation & Telemetry Section */}
+            <section className="p-5 sm:p-6 space-y-3">
+              <div className="flex items-start gap-3">
+                <div className="grid size-9 shrink-0 place-items-center rounded-md border border-border bg-surface-2 text-info">
+                  <Server className="size-4 text-info" />
+                </div>
+                <div>
+                  <h2 className="font-mono text-sm font-semibold text-foreground">
+                    Cache Invalidation & Staleness Guidelines
+                  </h2>
+                  <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                    How PyLens guarantees fast replays while allowing fresh re-analysis.
+                  </p>
+                </div>
+              </div>
+              <div className="mt-3 space-y-2 text-xs text-muted-foreground leading-relaxed pl-12">
                 <p>
                   • <strong>SHA-256 Code Hashing:</strong> Each Python code snippet is digested into
                   a cryptographic 256-bit hash. Repeat runs with verbatim identical code are
@@ -206,7 +291,13 @@ function SettingsPage() {
                   re-validating quality scores.
                 </p>
               </div>
-            </div>
+            </section>
+          </div>
+
+          <div className="flex items-center justify-between gap-4 rounded-md border border-border/70 bg-surface/50 px-4 py-3">
+            <p className="font-mono text-[11px] text-muted-foreground">
+              PyLens workspace · preferences synced locally
+            </p>
           </div>
         </TabsContent>
       </Tabs>
