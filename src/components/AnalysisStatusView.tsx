@@ -99,7 +99,7 @@ function truncateHash(hash: string, length = 10): string {
   return `${hash.slice(0, length)}…${hash.slice(-4)}`;
 }
 
-export function SettingsStatusView() {
+export function AnalysisStatusView() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
