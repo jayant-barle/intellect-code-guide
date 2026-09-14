@@ -60,7 +60,9 @@
   --color-sidebar-ring: var(--sidebar-ring);
 }
 
-:root {
+:root,
+.dark,
+[data-theme="dark"] {
   --radius: 0.5rem;
   --background: oklch(0.16 0.006 260);
   --foreground: oklch(0.93 0.005 260);
@@ -102,7 +104,8 @@
   --sidebar-ring: oklch(0.86 0.19 150);
 }
 
-.light {
+.light,
+[data-theme="light"] {
   --background: oklch(0.97 0.006 150);
   --foreground: oklch(0.2 0.02 160);
   --surface: oklch(0.995 0.003 150);
@@ -204,4 +207,48 @@
 .code-editor .token.punctuation {
   color: var(--color-muted-foreground);
   background: transparent;
+}
+
+/* Light mode high-contrast code editor syntax highlighting */
+.light .code-editor textarea::placeholder,
+[data-theme="light"] .code-editor textarea::placeholder {
+  color: color-mix(in oklab, var(--color-muted-foreground) 80%, transparent);
+}
+
+.light .code-editor .token.comment,
+[data-theme="light"] .code-editor .token.comment {
+  color: oklch(0.46 0.12 150);
+  font-style: italic;
+}
+
+.light .code-editor .token.keyword,
+.light .code-editor .token.boolean,
+[data-theme="light"] .code-editor .token.keyword,
+[data-theme="light"] .code-editor .token.boolean {
+  color: oklch(0.45 0.22 300);
+  font-weight: 500;
+}
+
+.light .code-editor .token.string,
+.light .code-editor .token.triple-quoted-string,
+[data-theme="light"] .code-editor .token.string,
+[data-theme="light"] .code-editor .token.triple-quoted-string {
+  color: oklch(0.42 0.16 135);
+}
+
+.light .code-editor .token.function,
+[data-theme="light"] .code-editor .token.function {
+  color: oklch(0.42 0.18 245);
+}
+
+.light .code-editor .token.number,
+[data-theme="light"] .code-editor .token.number {
+  color: oklch(0.48 0.16 45);
+}
+
+.light .code-editor .token.operator,
+.light .code-editor .token.punctuation,
+[data-theme="light"] .code-editor .token.operator,
+[data-theme="light"] .code-editor .token.punctuation {
+  color: oklch(0.35 0.03 260);
 }

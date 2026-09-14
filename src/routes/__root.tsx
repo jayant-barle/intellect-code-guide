@@ -8,15 +8,15 @@ import {
   Scripts,
 } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
-import { useState } from "react";
 
 import appCss from "../styles.css?url";
 import { AppSidebar } from "@/components/AppSidebar";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { Toaster } from "@/components/ui/sonner";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 import { reportLovableError } from "../lib/lovable-error-reporting";
-import { applyTheme, getStoredTheme, type AppTheme } from "@/lib/theme";
+import { useTheme } from "@/lib/theme";
 
 function NotFoundComponent() {
   return (
@@ -114,9 +114,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
         <HeadContent />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var s=localStorage.getItem('pylens-theme');var t=(s==='light'||s==='dark')?s:(window.matchMedia('(prefers-color-scheme: light)').matches?'light':'dark');var l=t==='light';document.documentElement.classList.toggle('light',l);document.documentElement.classList.toggle('dark',!l);document.documentElement.setAttribute('data-theme',t);document.documentElement.style.colorScheme=t;}catch(e){}})();`,
+          }}
+        />
       </head>
       <body>
         {children}
@@ -128,23 +133,7 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
-  const [theme, setTheme] = useState<AppTheme>("dark");
-
-  useEffect(() => {
-    const storedTheme = getStoredTheme();
-    setTheme(storedTheme);
-    applyTheme(storedTheme);
-
-    const handleThemeChange = (event: Event) => {
-      const nextTheme = (event as CustomEvent<AppTheme>).detail;
-      if (nextTheme !== "light" && nextTheme !== "dark") return;
-      setTheme(nextTheme);
-      applyTheme(nextTheme);
-    };
-
-    window.addEventListener("pylens-theme-change", handleThemeChange);
-    return () => window.removeEventListener("pylens-theme-change", handleThemeChange);
-  }, []);
+  const { theme } = useTheme();
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -152,9 +141,14 @@ function RootComponent() {
         <div data-theme={theme} className="flex min-h-screen w-full bg-background">
           <AppSidebar />
           <div className="flex min-w-0 flex-1 flex-col">
-            <header className="sticky top-0 z-20 flex h-12 items-center gap-2 border-b border-border bg-background/85 px-3 backdrop-blur">
-              <SidebarTrigger />
-              <span className="font-mono text-xs text-muted-foreground">pylens / workspace</span>
+            <header className="sticky top-0 z-20 flex h-12 items-center justify-between border-b border-border bg-background/85 px-3 backdrop-blur">
+              <div className="flex items-center gap-2">
+                <SidebarTrigger />
+                <span className="font-mono text-xs text-muted-foreground">pylens / workspace</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <ThemeToggle />
+              </div>
             </header>
             <main className="flex-1">
               {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
