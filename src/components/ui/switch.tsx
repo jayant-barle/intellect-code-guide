@@ -9,7 +9,10 @@ type SwitchProps = Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, "defaultC
 };
 
 const Switch = React.forwardRef<HTMLButtonElement, SwitchProps>(
-  ({ className, checked, defaultChecked = false, onCheckedChange, disabled, onClick, ...props }, ref) => {
+  (
+    { className, checked, defaultChecked = false, onCheckedChange, disabled, onClick, ...props },
+    ref,
+  ) => {
     const [uncontrolledChecked, setUncontrolledChecked] = React.useState(defaultChecked);
     const isChecked = checked ?? uncontrolledChecked;
 

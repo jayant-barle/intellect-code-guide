@@ -4,6 +4,7 @@ import { GitCompare, History, Home, Settings } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
+  SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
@@ -13,6 +14,8 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { Moon, Sun } from "lucide-react";
+import { useTheme } from "@/lib/theme";
 
 const items = [
   { title: "Home", url: "/", icon: Home },
@@ -25,6 +28,7 @@ export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
   const currentPath = useRouterState({ select: (r) => r.location.pathname });
+  const { theme, toggleTheme, isDark } = useTheme();
 
   return (
     <Sidebar collapsible="icon">
@@ -65,6 +69,33 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
+
+      <SidebarFooter className="border-t border-sidebar-border p-2">
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              onClick={toggleTheme}
+              className="group flex w-full items-center gap-2 font-mono text-xs text-muted-foreground transition-colors hover:text-foreground"
+              title={`Switch to ${isDark ? "light" : "dark"} theme (currently ${theme})`}
+              aria-label={`Switch to ${isDark ? "light" : "dark"} theme`}
+            >
+              {isDark ? (
+                <Moon className="size-4 shrink-0 text-neon transition-transform duration-200 group-hover:scale-110" />
+              ) : (
+                <Sun className="size-4 shrink-0 text-amber-500 transition-transform duration-200 group-hover:scale-110" />
+              )}
+              {!collapsed && (
+                <span className="flex flex-1 items-center justify-between text-xs">
+                  <span>Theme</span>
+                  <span className="text-[10px] uppercase text-neon font-semibold">
+                    {isDark ? "Dark" : "Light"}
+                  </span>
+                </span>
+              )}
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarFooter>
     </Sidebar>
   );
 }

@@ -435,12 +435,12 @@ export function QualityTrendChart({ data }: { data: TrendEntry[] }) {
         <AreaChart data={chartData} margin={{ top: 10, right: 12, bottom: 0, left: -20 }}>
           <defs>
             <linearGradient id="scoreGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="hsl(var(--neon))" stopOpacity={0.35} />
-              <stop offset="100%" stopColor="hsl(var(--neon))" stopOpacity={0.02} />
+              <stop offset="0%" stopColor="var(--neon)" stopOpacity={0.35} />
+              <stop offset="100%" stopColor="var(--neon)" stopOpacity={0.02} />
             </linearGradient>
             <linearGradient id="bugGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="hsl(var(--destructive))" stopOpacity={0.25} />
-              <stop offset="100%" stopColor="hsl(var(--destructive))" stopOpacity={0.02} />
+              <stop offset="0%" stopColor="var(--destructive)" stopOpacity={0.25} />
+              <stop offset="100%" stopColor="var(--destructive)" stopOpacity={0.02} />
             </linearGradient>
             <linearGradient id="complexityGradient" x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%" stopColor="hsl(210,90%,60%)" stopOpacity={0.2} />
@@ -452,13 +452,13 @@ export function QualityTrendChart({ data }: { data: TrendEntry[] }) {
             </linearGradient>
           </defs>
 
-          <CartesianGrid strokeDasharray="3 6" stroke="hsl(var(--border))" vertical={false} />
+          <CartesianGrid strokeDasharray="3 6" stroke="var(--border)" vertical={false} />
 
           <XAxis
             dataKey="date"
             axisLine={false}
             tickLine={false}
-            tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
+            tick={{ fontSize: 10, fill: "var(--muted-foreground)" }}
           />
 
           {/* Left Y-Axis for Quality, Complexity & Readability (0 - 100) */}
@@ -467,7 +467,7 @@ export function QualityTrendChart({ data }: { data: TrendEntry[] }) {
             domain={[0, 100]}
             axisLine={false}
             tickLine={false}
-            tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
+            tick={{ fontSize: 10, fill: "var(--muted-foreground)" }}
           />
 
           {/* Right Y-Axis for Bug Count */}
@@ -479,13 +479,13 @@ export function QualityTrendChart({ data }: { data: TrendEntry[] }) {
             hide={!visibleMetrics.bugs}
             axisLine={false}
             tickLine={false}
-            tick={{ fontSize: 10, fill: "hsl(var(--destructive))" }}
+            tick={{ fontSize: 10, fill: "var(--destructive)" }}
           />
 
           <Tooltip
             content={<CustomTooltip />}
             cursor={{
-              stroke: "hsl(var(--neon))",
+              stroke: "var(--neon)",
               strokeWidth: 1,
               strokeDasharray: "4 4",
             }}
@@ -498,19 +498,19 @@ export function QualityTrendChart({ data }: { data: TrendEntry[] }) {
               type="monotone"
               dataKey="score"
               name="Quality Score"
-              stroke="hsl(var(--neon))"
+              stroke="var(--neon)"
               strokeWidth={2.5}
               fill="url(#scoreGradient)"
               dot={{
                 r: 3.5,
-                fill: "hsl(var(--neon))",
-                stroke: "hsl(var(--background))",
+                fill: "var(--neon)",
+                stroke: "var(--background)",
                 strokeWidth: 2,
               }}
               activeDot={{
                 r: 6,
-                fill: "hsl(var(--neon))",
-                stroke: "hsl(var(--background))",
+                fill: "var(--neon)",
+                stroke: "var(--background)",
                 strokeWidth: 2,
               }}
             />
@@ -553,14 +553,14 @@ export function QualityTrendChart({ data }: { data: TrendEntry[] }) {
               type="monotone"
               dataKey="bugs"
               name="Bug Count"
-              stroke="hsl(var(--destructive))"
+              stroke="var(--destructive)"
               strokeWidth={2}
               strokeDasharray="3 3"
               fill="url(#bugGradient)"
               dot={{
                 r: 3,
-                fill: "hsl(var(--destructive))",
-                stroke: "hsl(var(--background))",
+                fill: "var(--destructive)",
+                stroke: "var(--background)",
                 strokeWidth: 1.5,
               }}
             />

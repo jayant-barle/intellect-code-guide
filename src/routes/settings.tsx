@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   ArrowRight,
+  Check,
   Code2,
   Cpu,
   Database,
@@ -10,12 +11,11 @@ import {
   Sparkles,
   Sun,
 } from "lucide-react";
-import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { Switch } from "@/components/ui/switch";
-import { applyTheme, getStoredTheme, saveTheme, type AppTheme } from "@/lib/theme";
+import { useTheme, type AppTheme } from "@/lib/theme";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/settings")({
   head: () => ({
@@ -39,20 +39,7 @@ export const Route = createFileRoute("/settings")({
 });
 
 function SettingsPage() {
-  const [theme, setTheme] = useState<AppTheme>("dark");
-
-  useEffect(() => {
-    const storedTheme = getStoredTheme();
-    setTheme(storedTheme);
-    applyTheme(storedTheme);
-  }, []);
-
-  const handleThemeChange = (nextTheme: AppTheme) => {
-    setTheme(nextTheme);
-    saveTheme(nextTheme);
-  };
-
-  const isDark = theme === "dark";
+  const { theme, setTheme, isDark } = useTheme();
 
   return (
     <div className="min-h-[calc(100vh-3rem)] bg-background">
@@ -107,45 +94,127 @@ function SettingsPage() {
         {/* Settings Card */}
         <div className="overflow-hidden rounded-lg border border-border bg-surface shadow-[0_18px_50px_-32px_color-mix(in_oklab,var(--neon)_35%,transparent)]">
           {/* Appearance Section */}
-          <section className="p-5 sm:p-6">
-            <div className="flex items-start gap-3">
-              <div className="grid size-9 shrink-0 place-items-center rounded-md border border-neon/25 bg-neon/10 text-neon">
-                {isDark ? <Moon className="size-4" /> : <Sun className="size-4" />}
-              </div>
-              <div>
-                <h2 className="font-mono text-sm font-semibold text-foreground">Appearance</h2>
-                <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                  Choose the canvas that feels best for your code review sessions.
-                </p>
-              </div>
-            </div>
-            <div className="mt-6 flex items-center justify-between gap-4 rounded-md border border-neon/20 bg-background/60 px-4 py-3">
-              <div className="flex items-center gap-3">
-                <div className="grid size-8 place-items-center rounded border border-border bg-surface-2 text-neon">
+          <section className="p-5 sm:p-6 space-y-5">
+            <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-start gap-3">
+                <div className="grid size-9 shrink-0 place-items-center rounded-md border border-neon/25 bg-neon/10 text-neon">
                   {isDark ? <Moon className="size-4" /> : <Sun className="size-4" />}
                 </div>
                 <div>
-                  <p className="font-mono text-xs font-medium text-foreground">
-                    {isDark ? "Dark mode" : "Light mode"}
-                  </p>
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    {isDark
-                      ? "Dim surfaces and neon accents"
-                      : "Bright surfaces and clear contrast"}
+                  <h2 className="font-mono text-sm font-semibold text-foreground">
+                    Workspace Theme
+                  </h2>
+                  <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                    Persistent theme applied across every page, code editor, and flowchart diagram.
                   </p>
                 </div>
               </div>
-              <div className="flex items-center gap-3">
-                <span className="hidden font-mono text-[10px] uppercase tracking-wider text-muted-foreground sm:inline">
-                  {isDark ? "Dark" : "Light"}
-                </span>
-                <Switch
-                  id="theme-toggle"
-                  checked={isDark}
-                  onCheckedChange={(checked) => handleThemeChange(checked ? "dark" : "light")}
-                  aria-label="Toggle light and dark theme"
-                />
+              <div className="font-mono text-[11px] text-muted-foreground self-start sm:self-auto">
+                Current: <span className="font-semibold text-neon capitalize">{theme}</span>
               </div>
+            </div>
+
+            {/* Interactive Theme Selection Cards */}
+            <div className="grid gap-4 sm:grid-cols-2 pt-2">
+              {/* Dark Theme Card */}
+              <button
+                type="button"
+                onClick={() => setTheme("dark")}
+                className={cn(
+                  "group relative flex flex-col justify-between rounded-lg border p-4 text-left transition-all cursor-pointer",
+                  isDark
+                    ? "border-neon bg-neon/5 ring-1 ring-neon/40 shadow-xs"
+                    : "border-border bg-background/50 hover:border-border/90 hover:bg-background/80",
+                )}
+              >
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="grid size-7 place-items-center rounded border border-border bg-surface-2 text-neon">
+                        <Moon className="size-3.5" />
+                      </div>
+                      <span className="font-mono text-xs font-semibold text-foreground">
+                        Dark Canvas
+                      </span>
+                    </div>
+                    {isDark ? (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-neon/15 px-2 py-0.5 font-mono text-[10px] font-semibold text-neon border border-neon/30">
+                        <Check className="size-3" /> Active
+                      </span>
+                    ) : (
+                      <span className="font-mono text-[10px] text-muted-foreground group-hover:text-foreground">
+                        Select
+                      </span>
+                    )}
+                  </div>
+
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    Low-glare dark surfaces with neon lime highlights. Ideal for extended coding
+                    sessions and deep focus.
+                  </p>
+
+                  {/* Visual Preview Swatch */}
+                  <div className="rounded border border-border/80 bg-[#161b22] p-2.5 space-y-1.5 font-mono text-[10px]">
+                    <div className="flex items-center gap-1.5 text-[#6ee7a8]">
+                      <span className="size-1.5 rounded-full bg-[#6ee7a8]" />
+                      <span>def analyze(python_code):</span>
+                    </div>
+                    <div className="pl-3 text-[#94a3b8]">
+                      return {"{"} score: 98 {"}"}
+                    </div>
+                  </div>
+                </div>
+              </button>
+
+              {/* Light Theme Card */}
+              <button
+                type="button"
+                onClick={() => setTheme("light")}
+                className={cn(
+                  "group relative flex flex-col justify-between rounded-lg border p-4 text-left transition-all cursor-pointer",
+                  !isDark
+                    ? "border-neon bg-neon/5 ring-1 ring-neon/40 shadow-xs"
+                    : "border-border bg-background/50 hover:border-border/90 hover:bg-background/80",
+                )}
+              >
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="grid size-7 place-items-center rounded border border-border bg-surface-2 text-amber-500">
+                        <Sun className="size-3.5" />
+                      </div>
+                      <span className="font-mono text-xs font-semibold text-foreground">
+                        Light Canvas
+                      </span>
+                    </div>
+                    {!isDark ? (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-neon/15 px-2 py-0.5 font-mono text-[10px] font-semibold text-neon border border-neon/30">
+                        <Check className="size-3" /> Active
+                      </span>
+                    ) : (
+                      <span className="font-mono text-[10px] text-muted-foreground group-hover:text-foreground">
+                        Select
+                      </span>
+                    )}
+                  </div>
+
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    Clean, bright surfaces with crisp high-contrast text. Great for well-lit
+                    environments and readability.
+                  </p>
+
+                  {/* Visual Preview Swatch */}
+                  <div className="rounded border border-border/80 bg-[#f8fafc] p-2.5 space-y-1.5 font-mono text-[10px]">
+                    <div className="flex items-center gap-1.5 text-[#059669]">
+                      <span className="size-1.5 rounded-full bg-[#059669]" />
+                      <span>def analyze(python_code):</span>
+                    </div>
+                    <div className="pl-3 text-[#475569]">
+                      return {"{"} score: 98 {"}"}
+                    </div>
+                  </div>
+                </div>
+              </button>
             </div>
           </section>
 

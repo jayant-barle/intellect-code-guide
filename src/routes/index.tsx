@@ -9,8 +9,11 @@ import {
   Bug,
   Check,
   Code2,
+  ChevronDown,
   ChevronRight,
   Copy,
+  Download,
+  FileCode,
   Gauge,
   GitBranch,
   Loader2,
@@ -28,6 +31,14 @@ import { ApiResultView } from "@/components/ApiResultView";
 import { TabSkeleton } from "@/components/TabSkeleton";
 
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import type { AnalysisKind } from "@/lib/analysis-types";
@@ -194,6 +205,31 @@ function Index() {
     });
   };
 
+  const handleDownload = (format: "py" | "js") => {
+    if (!code.trim()) {
+      toast.error("Editor is empty. Enter some code to download.");
+      return;
+    }
+
+    const funcMatch = code.match(/(?:def|function|class)\s+([a-zA-Z0-9_]+)/);
+    const baseName = funcMatch ? funcMatch[1] : "pylens_code";
+    const filename = `${baseName}.${format}`;
+
+    const mimeType =
+      format === "py" ? "text/x-python;charset=utf-8" : "text/javascript;charset=utf-8";
+    const blob = new Blob([code], { type: mimeType });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    toast.success(`Downloaded code as ${filename}`);
+  };
+
   const run = () => {
     if (isEmpty || busy) return;
     setHighlightLine(null);
@@ -235,17 +271,56 @@ function Index() {
                 ))
               : null}
           </div>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={handleClear}
-            disabled={isEmpty || busy}
-            className="gap-1.5 font-mono text-xs"
-          >
-            <Trash2 className="size-3.5" />
-            Clear code
-          </Button>
+          <div className="flex items-center gap-2">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  disabled={isEmpty || busy}
+                  className="gap-1.5 font-mono text-xs hover:border-neon/40 hover:text-neon"
+                  title="Download code as .py or .js file"
+                >
+                  <Download className="size-3.5" />
+                  <span>Download</span>
+                  <ChevronDown className="size-3 opacity-60" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="font-mono text-xs">
+                <DropdownMenuLabel className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                  Save Code File
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={() => handleDownload("py")}
+                  className="gap-2 cursor-pointer focus:bg-neon/10 focus:text-neon"
+                >
+                  <FileCode className="size-3.5 text-neon" />
+                  <span>Python file (.py)</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => handleDownload("js")}
+                  className="gap-2 cursor-pointer focus:bg-neon/10 focus:text-neon"
+                >
+                  <FileCode className="size-3.5 text-amber-500" />
+                  <span>JavaScript file (.js)</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handleClear}
+              disabled={isEmpty || busy}
+              className="gap-1.5 font-mono text-xs"
+            >
+              <Trash2 className="size-3.5" />
+              Clear code
+            </Button>
+          </div>
         </div>
 
         {codeHistory.length > 0 ? (
