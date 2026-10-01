@@ -9,19 +9,22 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as SettingsRouteImport } from './routes/settings'
-import { Route as ReviewRouteImport } from './routes/review'
-import { Route as HistoryRouteImport } from './routes/history'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AnalyzerRouteImport } from './routes/analyzer'
+import { Route as HistoryRouteImport } from './routes/history'
+import { Route as OptimizerRouteImport } from './routes/optimizer'
+import { Route as ReviewRouteImport } from './routes/review'
+import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as TestGeneratorRouteImport } from './routes/test-generator'
 
-const SettingsRoute = SettingsRouteImport.update({
-  id: '/settings',
-  path: '/settings',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ReviewRoute = ReviewRouteImport.update({
-  id: '/review',
-  path: '/review',
+const AnalyzerRoute = AnalyzerRouteImport.update({
+  id: '/analyzer',
+  path: '/analyzer',
   getParentRoute: () => rootRouteImport,
 } as any)
 const HistoryRoute = HistoryRouteImport.update({
@@ -29,60 +32,109 @@ const HistoryRoute = HistoryRouteImport.update({
   path: '/history',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const OptimizerRoute = OptimizerRouteImport.update({
+  id: '/optimizer',
+  path: '/optimizer',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ReviewRoute = ReviewRouteImport.update({
+  id: '/review',
+  path: '/review',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TestGeneratorRoute = TestGeneratorRouteImport.update({
+  id: '/test-generator',
+  path: '/test-generator',
   getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/analyzer': typeof AnalyzerRoute
   '/history': typeof HistoryRoute
+  '/optimizer': typeof OptimizerRoute
   '/review': typeof ReviewRoute
   '/settings': typeof SettingsRoute
+  '/test-generator': typeof TestGeneratorRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/analyzer': typeof AnalyzerRoute
   '/history': typeof HistoryRoute
+  '/optimizer': typeof OptimizerRoute
   '/review': typeof ReviewRoute
   '/settings': typeof SettingsRoute
+  '/test-generator': typeof TestGeneratorRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/analyzer': typeof AnalyzerRoute
   '/history': typeof HistoryRoute
+  '/optimizer': typeof OptimizerRoute
   '/review': typeof ReviewRoute
   '/settings': typeof SettingsRoute
+  '/test-generator': typeof TestGeneratorRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/history' | '/review' | '/settings'
+  fullPaths:
+    | '/'
+    | '/analyzer'
+    | '/history'
+    | '/optimizer'
+    | '/review'
+    | '/settings'
+    | '/test-generator'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/history' | '/review' | '/settings'
-  id: '__root__' | '/' | '/history' | '/review' | '/settings'
+  to:
+    | '/'
+    | '/analyzer'
+    | '/history'
+    | '/optimizer'
+    | '/review'
+    | '/settings'
+    | '/test-generator'
+  id:
+    | '__root__'
+    | '/'
+    | '/analyzer'
+    | '/history'
+    | '/optimizer'
+    | '/review'
+    | '/settings'
+    | '/test-generator'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AnalyzerRoute: typeof AnalyzerRoute
   HistoryRoute: typeof HistoryRoute
+  OptimizerRoute: typeof OptimizerRoute
   ReviewRoute: typeof ReviewRoute
   SettingsRoute: typeof SettingsRoute
+  TestGeneratorRoute: typeof TestGeneratorRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/settings': {
-      id: '/settings'
-      path: '/settings'
-      fullPath: '/settings'
-      preLoaderRoute: typeof SettingsRouteImport
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/review': {
-      id: '/review'
-      path: '/review'
-      fullPath: '/review'
-      preLoaderRoute: typeof ReviewRouteImport
+    '/analyzer': {
+      id: '/analyzer'
+      path: '/analyzer'
+      fullPath: '/analyzer'
+      preLoaderRoute: typeof AnalyzerRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/history': {
@@ -92,11 +144,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof HistoryRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+    '/optimizer': {
+      id: '/optimizer'
+      path: '/optimizer'
+      fullPath: '/optimizer'
+      preLoaderRoute: typeof OptimizerRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/review': {
+      id: '/review'
+      path: '/review'
+      fullPath: '/review'
+      preLoaderRoute: typeof ReviewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/test-generator': {
+      id: '/test-generator'
+      path: '/test-generator'
+      fullPath: '/test-generator'
+      preLoaderRoute: typeof TestGeneratorRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -104,9 +177,12 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AnalyzerRoute: AnalyzerRoute,
   HistoryRoute: HistoryRoute,
+  OptimizerRoute: OptimizerRoute,
   ReviewRoute: ReviewRoute,
   SettingsRoute: SettingsRoute,
+  TestGeneratorRoute: TestGeneratorRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

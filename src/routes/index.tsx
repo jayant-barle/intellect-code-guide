@@ -137,6 +137,11 @@ function Index() {
         setCached(false);
         setCodeHistory([]);
       }
+      const pendingTab = sessionStorage.getItem("pylens_initial_tab") as AnalysisKind | null;
+      if (pendingTab) {
+        sessionStorage.removeItem("pylens_initial_tab");
+        setKind(pendingTab);
+      }
     } catch {
       // ignore
     }

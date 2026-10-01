@@ -1,5 +1,13 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { GitCompare, History, Home, Settings } from "lucide-react";
+import {
+  FlaskConical,
+  FolderSearch,
+  GitCompare,
+  History,
+  Home,
+  Settings,
+  Zap,
+} from "lucide-react";
 
 import {
   Sidebar,
@@ -20,6 +28,9 @@ import { useTheme } from "@/lib/theme";
 const items = [
   { title: "Home", url: "/", icon: Home },
   { title: "Review", url: "/review", icon: GitCompare },
+  { title: "Test Generator", url: "/test-generator", icon: FlaskConical },
+  { title: "Optimizer", url: "/optimizer", icon: Zap },
+  { title: "Codebase Analyzer", url: "/analyzer", icon: FolderSearch },
   { title: "History", url: "/history", icon: History },
   { title: "Settings", url: "/settings", icon: Settings },
 ] as const;
