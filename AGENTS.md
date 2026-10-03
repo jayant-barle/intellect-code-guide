@@ -10,3 +10,5 @@
 > the editor, so keep the branch in a working state.
 
 <!-- LOVABLE:END -->
+
+- Execute submitted Python only in a short-lived browser Web Worker; never spawn Python or execute submitted code in server functions, because production runs on an edge runtime and user code must not run on the server.
