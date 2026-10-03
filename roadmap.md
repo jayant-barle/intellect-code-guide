@@ -1,0 +1,3 @@
+- [ ] Move Python syntax analysis, formatting, and pytest execution from server processes into a browser worker; retain a time limit and clear failures.
+- [ ] Ensure generated tests are tied to the current editor contents and accept the matching AST analysis.
+- [ ] Validate Home, Settings, test generation, and test execution; confirm no current build/runtime errors.
