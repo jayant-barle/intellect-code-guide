@@ -5,30 +5,7 @@ import type {
   SuggestedFix,
   TestCategory,
 } from "./test-generator-types";
-import { auditCodeSecurity } from "./python-safety";
 export { auditCodeSecurity } from "./python-safety";
-
-/**
- * Static security check: ensure user code and test code don't attempt
- * unsafe system activities (arbitrary disk modifications, socket listening, process spawning).
- */
-export function auditCodeSecurity(code: string): { safe: boolean; reason?: string } {
-  const dangerousPatterns = [
-    { pattern: /\bimport\s+subprocess\b|\bfrom\s+subprocess\b/, reason: "Process creation (subprocess) is disallowed in sandbox" },
-    { pattern: /\bos\.(system|popen|spawn|fork|exec|kill)\b/, reason: "Arbitrary system command execution is disallowed" },
-    { pattern: /\b(shutil\.rmtree|os\.remove|os\.unlink|os\.rmdir)\s*\(\s*["'](?:\/|[a-zA-Z]:|\.\.)/, reason: "Host filesystem mutation is disallowed" },
-    { pattern: /\bimport\s+socket\b|\bfrom\s+socket\b/, reason: "Raw network socket operations are restricted" },
-    { pattern: /\b(pty|posix)\b/, reason: "Low-level system terminal APIs are prohibited" },
-  ];
-
-  for (const { pattern, reason } of dangerousPatterns) {
-    if (pattern.test(code)) {
-      return { safe: false, reason };
-    }
-  }
-
-  return { safe: true };
-}
 
 /**
  * Generates local AST-driven unit tests when AI is offline or unconfigured.
